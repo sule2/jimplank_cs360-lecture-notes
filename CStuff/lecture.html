@@ -236,7 +236,67 @@ However, you can always say ``<b><i>something</i> = x</b>''.  We'll discuss late
 lecture.
 <p>
 
-When you 
+When you pass arrays as parameters, the pointers are passed, and not the arrays.  
+This is unlike a vector in C++, which copies the vectors.  Here's an example
+(in <b><a href=p2a.c>p2a.c</a></b>):
+
+<p><center><table border=3 cellpadding=3><td><pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+<font color=blue>/* This sets any lower-case letter in a to upper case. */</font>
+
+void change_case(char a[20])
+{
+  int i;
+
+  for (i = 0; a[i] != '\0'; i++) {
+    if (a[i] &gt;= 'a' && a[i] &lt;= 'z') a[i] += ('A' - 'a');
+  }
+}
+
+<font color=blue>/* This sets a string to 19 characters and then calls change_case(). */</font>
+
+int main()
+{
+  int i;
+  char s[20];
+  
+  <font color=blue>/* Set s to "abcdefghijklmnopqrs". */</font>
+
+  for (i = 0; i &lt; 19; i++) s[i] = 'a' + i;
+  s[19] = '\0';
+
+  printf("First, S is %s.\n", s);
+  change_case(s);
+  printf("Now, S is   %s.\n", s);
+
+  return 0;
+}
+</pre></td></table></center><p>
+
+You'll note that even though you declare <b>a</b> to be an array of 20 chars, it is simply
+the pointer that gets passed to the procedure.  For that reason, <b>change_case()</b> operates
+on the array, and not on a copy:
+
+<pre>
+UNIX> <font color=darkred><b>./p2a</b></font>
+First, S is abcdefghijklmnopqrs.
+Now, S is   ABCDEFGHIJKLMNOPQRS.
+UNIX>
+</pre>
+
+In fact, you can't trust that the compiler cares about the fact you put the "20" inside
+the declaration of <b>change_case</b>.  The following are in fact all equivalent:
+
+<pre>
+void change_case(char a[20])
+void change_case(char a[19])
+void change_case(char a[5000])
+void change_case(char a[])
+void change_case(char *a)
+</pre>
+
 <hr>
 <h3>Structs</h3>
 
