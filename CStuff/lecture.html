@@ -1,4 +1,4 @@
-<title> Getting Started with C, Types, Pointers, Casting, Malloc, Segementation Violations and Bus Errors</title>
+<title> Getting Started with C, Types, Pointers, Casting, Malloc, Segmentation Violations and Bus Errors</title>
 <body bgcolor=FFFFFF>
 <h2> Getting Started with C, Types, Pointers, Casting, Malloc, Segementation Violations and Bus Errors</h2>
 
@@ -235,6 +235,8 @@ the compiler yet again), you are writing bad C code.
 However, you can always say ``<b><i>something</i> = x</b>''.  We'll discuss later in the 
 lecture.
 <p>
+
+When you 
 <hr>
 <h3>Structs</h3>
 
@@ -273,7 +275,7 @@ int main()
 
 
 <pre>
-UNIX> <font color=darkred><b>id1</b></font>
+UNIX> <font color=darkred><b>./id1</b></font>
 5 3.14
 UNIX> <font color=darkred><b></b></font>
 </pre>
@@ -334,7 +336,7 @@ int main()
 Straightforward when it runs:
 
 <pre>
-UNIX> <font color=darkred><b>id3</b></font>
+UNIX> <font color=darkred><b>./id3</b></font>
 1: 5 3.14
 2: 10 8.14
 UNIX> <font color=darkred><b></b></font>
@@ -457,7 +459,7 @@ int main()
 
 
 <pre>
-UNIX> <font color=darkred><b>id5b | tail</b></font>
+UNIX> <font color=darkred><b>./id5b | tail</b></font>
  990  990
  991  991
  992  992
@@ -627,8 +629,6 @@ example is when you want to turn a <b>char</b> into an <b>int</b>,
 or an <b>int</b> into a <b>float</b> as in 
 <a href=p4.c><b>p4.c</b></a>:
 
-<b><a href=p4.c>p4.c</a></b>
-
 <p><center><table border=3 cellpadding=3><td><pre>
 int main()
 {
@@ -658,11 +658,15 @@ get warnings:
 
 <pre>
 UNIX> <font color=darkred><b>make p3</b></font>
-gcc -g -c p3.c
-p3.c: In function 'main':
-p3.c:13: warning: format '%lx' expects type 'long unsigned int', but argument 2 has type 'int *'
-p3.c:13: warning: format '%lx' expects type 'long unsigned int', but argument 3 has type 'char *'
-gcc -g -o p3 p3.o
+gcc  -o p3 p3.c
+p3.c:14:39: warning: format specifies type 'unsigned long' but the argument has type 'int *' [-Wformat]
+  printf("ip = 0x%lx.  jp = 0x%lx\n", ip, jp);
+                 ~~~                  ^~
+p3.c:14:43: warning: format specifies type 'unsigned long' but the argument has type 'char *' [-Wformat]
+  printf("ip = 0x%lx.  jp = 0x%lx\n", ip, jp);
+                              ~~~         ^~
+                              %s
+2 warnings generated.
 UNIX> <font color=darkred><b></b></font>
 </pre>
 
@@ -696,14 +700,13 @@ compiles it without any warnings:
 
 <pre>
 UNIX> <font color=darkred><b>make p5</b></font>
-gcc -g -c p5.c
-gcc -g -o p5 p5.o
-UNIX> <font color=darkred><b>p5</b></font>
+gcc  -o p5 p5.c
+UNIX> <font color=darkred><b>./p5</b></font>
 ip = 0x7fff6ad53dfc.  jp = 0x7fff6ad53e00
 UNIX> <font color=darkred><b></b></font>
 </pre>
 
-(As an aside, some compilers won't print out those warning.  For example, on my 
+(As an aside, some compilers won't print out those warnings.  For example, on my 
 Pi, there is no warning on <b>p3.c</b>.  So it goes.)
 <p>
 On some machines (not ours), both pointers and <b>int</b>s
@@ -767,7 +770,7 @@ as evidenced by the warnings here:
 
 <pre>
 UNIX> <font color=darkred><b>make p8</b></font>
-gcc -g -o p8 p8.c
+gcc  -o p8 p8.c
 p8.c: In function 'main':
 p8.c:12: warning: cast from pointer to integer of different size
 p8.c:17: warning: cast to pointer from integer of different size
@@ -790,7 +793,8 @@ UNIX> <font color=darkred><b></b></font>
 Same thing on my Pi:
 
 <pre>
-pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ <font color=darkred><b>gcc -o p8 p8.c</b></font>
+pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ <font color=darkred><b>make p8</b></font>
+gcc -o p8 p8.c
 pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ <font color=darkred><b>./p8</b></font>
 i = 2126570764 (0x7ec0e50c)
 s = 2126570764 (0x7ec0e50c)
@@ -834,9 +838,8 @@ int main()
 </pre></td></table></center><p>
 <pre>
 UNIX> <font color=darkred><b>make p9</b></font>
-gcc -g -c p9.c
-gcc -g -o p9 p9.o
-UNIX> <font color=darkred><b>p9</b></font>
+gcc  -o p9 p9.c
+UNIX> <font color=darkred><b>./p9</b></font>
 i = 140733481930528 (0x7fff1132cf20)
 s = 140733481930528 (0x7fff1132cf20)
 s = 0x7fff1132cf20.  s2 = 0x7fff1132cf21, i = 0x7fff1132cf21
@@ -1046,24 +1049,24 @@ integer.  <b>Scanf()</b> returns the number of successful reads that it did.
 If our read is successful, the program prints <i>i</i> in decimal and in hexadecimal.
 <p>
 <pre>
-UNIX> <font color=darkred><b>scanf1</b></font>
+UNIX> <font color=darkred><b>./scanf1</b></font>
 <font color=darkred><b>10</b></font>
 Just read i: 10 (0xa)
-UNIX> <font color=darkred><b>scanf1</b></font>
+UNIX> <font color=darkred><b>./scanf1</b></font>
 <font color=darkred><b>Fred</b></font>
 Scanf() failed for some reason.
-UNIX> <font color=darkred><b>scanf1</b></font>
+UNIX> <font color=darkred><b>./scanf1</b></font>
 <font color=darkred><b>15.999999999999</b></font>
 Just read i: 15 (0xf)
-UNIX> <font color=darkred><b>scanf1</b></font>
+UNIX> <font color=darkred><b>./scanf1</b></font>
 <font color=darkred><b>-15.99999999999999</b></font>
 Just read i: -15 (0xfffffff1)
-UNIX> <font color=darkred><b>scanf1</b></font>
+UNIX> <font color=darkred><b>./scanf1</b></font>
 <font color=darkred><b>&lt;CNTL-D&gt;</b></font>
 Scanf() failed for some reason.
-UNIX> <font color=darkred><b>echo "" | scanf1</b></font>
+UNIX> <font color=darkred><b>echo "" | ./scanf1</b></font>
 Scanf() failed for some reason.
-UNIX> <font color=darkred><b>echo 15fred | scanf1</b></font>
+UNIX> <font color=darkred><b>echo 15fred | ./scanf1</b></font>
 Just read i: 15 (0xf)
 UNIX>
 </pre>
@@ -1105,21 +1108,53 @@ int main()
 </pre></td></table></center><p>
 
 It will compile (although some nosy compilers will figure out it's buggy and yell at you).
-However, it usually won't run without a problem.  Here it is on my Mac:
+Whether the bug manifests or not is a matter of luck.  
+
+Here's the program on my Mac in 2015:
 
 <pre>
-UNIX> <font color=darkred><b>echo 10 | scanf2</b></font>
+UNIX> <font color=darkred><b>echo 10 | ./scanf2</b></font>
 i = 0x7fff5fc01052
 Bus error
 UNIX>
 </pre>
 
 What happened?  The answer is that <i>i</i> is an uninitialized variable.  It randomly
-started with a value of 0x7fff5fc01052.  When <b>scanf()</b> tried to stuff 10 into
+started with a value of 0x7fff5fc01052.  When <b>scanf()</b> tried to stuff the value 10 into
 those four bytes, a hardware error was generated -- that's the bus error.  If you're
 lucky, when your program has uninitialized variables, they lead to segmentation
 violations and bus errors.  If you're unlucky, they won't, and you don't discover
 your bug until (potentially much) later.
+<p>
+Just to test on some other machines, 
+here is is on my Raspberry Pi in 2017:
+<pre>
+@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ <font color=darkred><b>echo 10 | ./scanf2</b></font>
+i = 0x0
+Segmentation fault
+pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ 
+</pre>
+
+The fact that <i>i</i> was zero is good here -- the 
+segmentation violation clues us into the fact that there is a bug.
+<p>
+In 2018, my Mac gave me the disaster output:
+
+<pre>
+UNIX> <font color=darkred><b>echo 10 | ./scanf2</b></font>
+i = 0x7fff57c662a0
+Just read i: 10 (0xa)
+UNIX> <font color=darkred><b></b></font>
+</pre>
+
+The variable  <i>i</i> just happens to be a legal and aligned address.  The value 10 has
+been stuffed into bytes 0x7fff57c662a0 to 0x7fff57c662a3.  Who knows what that is in my
+program.  The fact that my program simply exits means that this bug is benign, but if I 
+were to have lots more going on in my program, this bug would be extremely difficult to 
+figure out.  The reason is that when the error manifests, it will be much later in the program,
+when some other part of the program is using addresses 0x7fff57c662a0 to 0x7fff57c662a3.  
+This is why it pays to be careful when you are programming.
+
 <P>
 <h3>Strings and scanf</h3>
 
@@ -1148,6 +1183,7 @@ int main()
   }
   exit(0);
 }
+</pre></td></table></center><p>
 
 Since an array variable like <b>s</b> is equivalent to a pointer
 to the first element, we do not have to pass <b>&amp;s</b>
@@ -1170,7 +1206,8 @@ Character: 8: 107 k
 UNIX> <font color=darkred><b></b></font>
 </pre>
 
-<b>scanf()</b> with strings is problematic.  I will include an example in the next lecture.
+<b>scanf()</b> with strings is problematic.  Think about what happens when you enter a string
+with more than 10 characters.  I will include an example in the next lecture.
 
 
 <hr>
