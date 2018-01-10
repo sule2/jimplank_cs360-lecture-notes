@@ -102,27 +102,65 @@ as a local variable.  For example, look at the program below in
 (In this and all other lecture notes, you can copy the programs and the
 makefile into your own directory, and then compile them by using <b>make</b>.
 E.g. to make the program <b>p1</b>, you say ``<b>make p1</b>'').
-<p>
+
 <p><center><table border=3 cellpadding=3><td><pre>
 #include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
 
 int i;
 
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
   int j;
 
   j = argc;
   i = j;
-  printf("%d\n", i);
+  printf("Argc:          %d\n", i);
+
+  j = sizeof(long);
+  printf("Sizeof(long):  %d\n", j);
+
+  j = sizeof(int *);
+  printf("Sizeof(int *): %d\n", j);
+
+  exit(0);
 }
 </pre></td></table></center><p>
+
 There are three scalar int variables here -- <b>i</b>, <b>j</b>, and 
 <b>argc</b>.  <b>I</b> is a global 
 variable.  <b>J</b> is a local variable, and <b>argc</b> 
 is a parameter.  Scalars are 
 pretty straightforward.   You can pass them as parameters to procedures, and 
 return them from procedures without worrying about anything going awry.  
+
+The program prints argc (which it has copied to the variables j and i), and then
+the size of longs and pointers.  Here are two runs on my Mac (in 2018).  As 
+you can see, longs and pointers are 8 bytes:
+
+<pre>
+UNIX> <font color=darkred><b>./p1</b></font>
+Argc:          1
+Sizeof(long):  8
+Sizeof(int *): 8
+UNIX> <font color=darkred><b>./p1 using many arguments</b></font>
+Argc:          4
+Sizeof(long):  8
+Sizeof(int *): 8
+UNIX> <font color=darkred><b></b></font>
+</pre>
+
+Some machines allow you to compile in 32-bit mode, which forces pointers and longs to 
+be four bytes.  On my macintosh, that's the "-m32" option to <b>gcc</b>:
+
+<pre>
+UNIX> <font color=darkred><b>gcc -m32 -o p1-32 p1.c</b></font>
+UNIX> <font color=darkred><b>./p1-32</b></font>
+Argc:          1
+Sizeof(long):  4
+Sizeof(int *): 4
+UNIX> <font color=darkred><b></b></font>
+</pre>
 
 <hr>
 <h2>Aggregate Types</h2>
