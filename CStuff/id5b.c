@@ -5,10 +5,10 @@ typedef struct {
   int a[1000];
 } SID;
 
-void a(SID s)
-{
-  s.a[999] = -1;
-}
+void a(SID s)    /* Although this procedure changes element 999 of s, */
+{                /* s is a copy of the calling parameter, so it is    */
+  s.a[999] = -1; /* deleted at the end of the procedure.              */
+}                /* In other words, the procedure does nothing.       */
 
 
 int main()

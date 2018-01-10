@@ -2,22 +2,28 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef long unsigned int LUI;
+
 int main()
 {
   char s[4];
   int i;
   char *s2;
 
-  strcpy(s, "Jim");
+  /* Copy the string "Jim" to s, then turn the pointer into an integer i.
+     Print out the pointer's value, and i's value. */
+
+  strcpy(s, "Jim"); 
   i = (int) s;
   printf("i = %d (0x%x)\n", i, i);
-  printf("s = %ld (0x%lx)\n", (long unsigned int) s, (long unsigned int) s);
+  printf("s = %ld (0x%lx)\n", (LUI) s, (LUI) s);
+
+  /* Now increment i, and turn it back into a pointer.  
+     Print out the pointers, and then attempt to print out what they point to. */
 
   i++;
   s2 = (char *) i;
-  printf("s = 0x%lx.  s2 = 0x%lx, i = 0x%x\n", 
-           (long unsigned int) s, 
-           (long unsigned int) s2, i);
+  printf("s = 0x%lx.  s2 = 0x%lx, i = 0x%x\n", (LUI) s, (LUI) s2, i);
   printf("s[0] = %c, s[1] = %c, *s2 = %c\n", s[0], s[1], *s2);
   exit(0);
 }

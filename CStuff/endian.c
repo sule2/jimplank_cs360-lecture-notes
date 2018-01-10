@@ -4,8 +4,7 @@ typedef unsigned long UL;
 
 int main () {
 
-  /*
-    I used unsigned variables to shut up the compiler
+  /* I used unsigned variables to shut up the compiler
     and to prevent preservation of negative integers when
     examining the contents of the array when viewed as
     individual bytes.

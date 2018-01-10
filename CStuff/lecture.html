@@ -11,11 +11,12 @@
 <LI> And bitbucket: <a href=https://bitbucket.org/jimplank/cs360-lecture-notes>https://bitbucket.org/jimplank/cs360-lecture-notes</a>.
 <LI> Originally written in 1995.
 <LI> Last modification: <i>
-Tue Jan  9 16:58:07 EST 2018
+Wed Jan 10 16:47:39 EST 2018
 </i>
 </UL>
+<hr>
 
-<h1>Moving from C++ to C</h1>
+<h2>Moving from C++ to C</h2>
 
 This class is taught in C, rather than C++.  The reasoning is as follows:
 Because C hides so much
@@ -63,14 +64,13 @@ I'm assuming that you already know <b>printf()</b> from previous classes.
 That handles output.  
 For input, we'll focus on three procedures that are defined
 in <b>stdio.h</b>: <b>scanf()</b>, <b>fscanf()</b> and <b>fgets()</b>.
-We'll get to them a little later in the lecture.  
-Chances are that you know <b>sscanf()</b> already.  If you don't, you'll learn it.  
+We'll get to <b>scanf()</b> a little later in the lecture.
 
 
 
 
 <hr>
-<h2>TYPES in C</h2>
+<h2>Types in C</h2>
 
 In C, there are three kinds of types that variables can have -- scalars, 
       aggregates, and pointers.  Half of the game in getting things right
@@ -162,6 +162,19 @@ Sizeof(int *): 4
 UNIX> <font color=darkred><b></b></font>
 </pre>
 
+Some machines don't have 8-byte longs or pointers.  One example is the Raspberry Pi.
+When I pulled the repo and compiled on my Pi, I got the following:
+
+<pre>
+pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ <font color=darkred><b>./p1</b></font>
+Argc:          1
+Sizeof(long):  4
+Sizeof(int *): 4
+pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ 
+</pre>
+
+The Pi's compiler doesn't have the "-m32" option.  Such is life.
+
 <hr>
 <h2>Aggregate Types</h2>
 
@@ -172,10 +185,11 @@ I do both below in
 
 <p><center><table border=3 cellpadding=3><td><pre>
 #include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
 
 char s1[15];
 
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
   char s2[4];
 
@@ -185,20 +199,23 @@ main(int argc, char **argv)
 <b>s2</b> is a local array of 4 chars.  
 <p>
 If an array has been statically declared, then you cannot assign it to 
-another array.  For example, look at <a href=p2.c><b>p2.c</b></a>:
+another array.  For example, look at the rest of <a href=p2.c><b>p2.c</b></a>:
 
 <p><center><table border=3 cellpadding=3><td><pre>
 #include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
 
 char s1[15];
 
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
   char s2[4];
   
   s2 = "Jim";
+  exit(0);
 }
 </pre></td></table></center><p>
+
 The statement ``<b>s2 = "Jim"</b>'' is illegal in C, because <b>s2</b> has 
 been statically 
 declared.  If you try to compile this program, <b>gcc</b> 
@@ -242,7 +259,7 @@ struct intdouble {
   double d;
 };
 
-main()
+int main()
 {
   struct intdouble id1;
 
@@ -250,8 +267,10 @@ main()
   id1.d = 3.14;
 
   printf("%d %.2lf\n", id1.i, id1.d);
+  exit(0);
 }
 </pre></td></table></center><p>
+
 
 <pre>
 UNIX> <font color=darkred><b>id1</b></font>
@@ -270,7 +289,7 @@ typedef struct intdouble {
   double d;
 } ID;
 
-main()
+int main()
 {
   ID id1;
 
@@ -278,6 +297,7 @@ main()
   id1.d = 3.14;
 
   printf("1: %d %.2lf\n", id1.i, id1.d);
+  exit(0);
 }
 </pre></td></table></center><p>
 
@@ -295,7 +315,7 @@ struct intdouble {
   double d;
 };
 
-main()
+int main()
 {
   intdouble id1, id2;
 
@@ -350,25 +370,25 @@ struct intdouble {
   double d;
 };
 
-main()
+int main()
 {
   struct intdouble id1, id2;
 
   id1.i = 5;
   id1.d = 3.14;
 
-  id2 = id1;
-
+  id2 = id1;  <font color=blue>/* THIS IS THE OFFENDING LINE */</font>
   id2.i += 5;
   id2.d += 5;
 
   printf("1: %d %.2lf\n", id1.i, id1.d);
   printf("2: %d %.2lf\n", id2.i, id2.d);
+  exit(0);
 }
 </pre></td></table></center><p>
 
 This runs identically to the C++ version.  I can tell you that I disapprove of 
-this code.  Why, because the statement ``<b>id2 = id1</b>'' offends me.  It is the 
+this code.  Why? Because the statement ``<b>id2 = id1</b>'' offends me.  It is the 
 only part of C where you can copy an unspecified number of bytes with an assignment
 statement.  It is a weakness of the language.  For example, take a look at
 <b><a href=id5a.c>id5a.c</a></b>:
@@ -381,18 +401,17 @@ typedef struct {
   int a[1000];
 } SID;
 
-main()
+int main()
 {
   SID s1, s2;
   int i;
 
   for (i = 0; i &lt; 1000; i++) s1.a[i] = i;
-
-  s2 = s1;  <b>/* THE OFFENDING LINE */</b>
+  s2 = s1;
 
   for (i = 0; i &lt; 1000; i++) printf("%4d %4d\n", s1.a[i], s2.a[i]);
  
-  exit(1);
+  exit(0);
 }
 </pre></td></table></center><p>
 
@@ -415,13 +434,13 @@ typedef struct {
   int a[1000];
 } SID;
 
-void a(SID s)
-{
-  s.a[999] = -1;
-}
+void a(SID s)    <font color=blue>/* Although this procedure changes element 999 of s, */</font>
+{                <font color=blue>/* s is a copy of the calling parameter, so it is    */</font>
+  s.a[999] = -1; <font color=blue>/* deleted at the end of the procedure.              */</font>
+}                <font color=blue>/* In other words, the procedure does nothing.       */</font>
 
 
-main()
+int main()
 {
   SID s1, s2;
   int i;
@@ -432,9 +451,10 @@ main()
   a(s1);
   for (i = 0; i &lt; 1000; i++) printf("%4d %4d\n", s1.a[i], s2.a[i]);
  
-  exit(1);
+  exit(0);
 }
 </pre></td></table></center><p>
+
 
 <pre>
 UNIX> <font color=darkred><b>id5b | tail</b></font>
@@ -456,7 +476,7 @@ A final note about C++ structs.  They are basically stripped down classes -- you
 can put methods in them, and then implement the methods using the struct's variables,
 as in <b><a href=id6.cpp>id6.cpp</a></b>:
 
-<p><center><table border=3 cellpadding=3><td><pre>
+<p><center><table border=3 cellpadding=3><td valign=top><pre>
 #include &lt;cstdio&gt;
 #include &lt;iostream&gt;
 using namespace std;
@@ -471,8 +491,8 @@ void intdouble::Print()
 {
   printf("   %d %.2lf\n", i, d);
 }
-  
-main()
+</pre></td><td valign=top><pre>
+int main()
 {
   intdouble id1, id2;
 
@@ -493,16 +513,22 @@ constructs in two fairly similar languages that have completely different semant
 Which means that tons of people are going to be confused going from C++ to C, or 
 even C to C++ when their struct semantics are off.  It is for this reason that
 I don't teach structs as a C++ construct in either CS140 or CS302.  Just use
-a class.
+a class.  
+<p>
+<i>(When your job interviewer asks you why you are using classes rather than 
+structs in C++, you should respond as follows: "Structs in C++ are totally different
+constructs than they are in C.  However, they have enough similarity that one can
+easily get confused when writing code in both languages.  For that reason, I choose
+to use structs in C, but not in C++.  In C++, I use a class.  The compiler should
+be smart enough to make the class code as efficient as struct code.")</i>
 
 <hr>
 <h2>Pointers</h2>
 
 Pointers are where most people mess up in C.  A pointer is simply a
-pointer to memory.  Memory can be allocated in one of two ways -- by
+index to memory.  Memory can be allocated in one of two ways -- by
 declaring variables, or by calling <b>malloc()</b> (there is no <b>new</b> in C).  
-Whenever memory has been
-allocated, you can set a pointer to it.
+Whenever memory has been allocated, you can set a pointer to it.
 <p>
 You can view memory as one huge array of bytes (chars).  This array has
 2<sup>32</sup> or 2<sup>64</sup> elements.  
@@ -519,7 +545,10 @@ For example, look at the following program (in
 <a href=p3.c><b>p3.c</b></a>):
 
 <p><center><table border=3 cellpadding=3><td><pre>
-main()
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main()
 {
   int i;
   char j[14];
@@ -530,6 +559,7 @@ main()
   jp = j;
 
   printf("ip = 0x%lx.  jp = 0x%lx\n", ip, jp);
+  exit(0);
 }
 </pre></td></table></center><p>
 
@@ -544,10 +574,9 @@ pointers -- these are indices into the memory array.
 Unfortunately, when we try to compile this, we get warnings.  Don't worry
 about them yet -- we'll get to that.  It still compiles correctly.
 <p>
-When we run it, we
-get:
+When we run it, we get the following (this was on my Mac in 2015)
 <pre>
-UNIX> <font color=darkred><b>p3</b></font>
+UNIX> <font color=darkred><b>./p3</b></font>
 ip = 0x7fff2efcdd9c.  jp = 0x7fff2efcdda0
 UNIX> <font color=darkred><b></b></font>
 </pre>
@@ -556,7 +585,10 @@ What this means is that when we view memory as an array, elements
 and <b>0x7fff2efcdd9f</b> are allocated for
 the local variable <b>i</b>, and elements <b>0x7fff2efcdda0</b> 
 through <b>0x7fff2efcddad</b>
-are allocated for the array <b>j</b>.
+are allocated for the array <b>j</b>.  When you run this on your own machine,
+you will get different pointer values.  Regardless of the pointer values,
+<b>ip</b> will point to the first of the four bytes of <b>i</b>, and 
+<b>ip</b> will point to the first of the fourteen bytes of <b>j</b>, and 
 <p>
 Note that I said ``<b>jp = j</b>'' and not ``<b>jp = &j</b>''.  
 This is because when 
@@ -573,21 +605,32 @@ in <b>p3.c</b>, there are 34 bytes of local variables allocated in the
 <b>main()</b>
 procedure -- 4 for <b>i</b>, 14 for <b>j</b>, 
 8 for <b>ip</b>, and 8 for <b>jp</b>.
+<p>
+One of the nice things about 32-bit machines is that their pointers don't
+seem so unwieldy.  On my Pi, the output is:
 
+<pre>
+pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ UNIX> <font color=darkred><b>.p3</b></font>
+ip = 0x7eeb050c.  jp = 0x7eeb04fc
+pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ 
+</pre>
+
+That feels more manageable, doesn't it?  
 
 <hr>
 <h2>Type Casting (sometimes called ``type coercion'')</h2>
 
 There are times when you would like
-to take <i>x</i> bytes of memory of a certain type, and assign them to 
-<i>y</i> bytes
-of memory of another type.  This is called ``type casting''.  A simple
+to take a variable that is stored in <i>x</i> bytes, and assign them to 
+a variable that is stored in <i>y</i> bytes.  This is called ``type casting''.  A simple
 example is when you want to turn a <b>char</b> into an <b>int</b>, 
 or an <b>int</b> into a <b>float</b> as in 
 <a href=p4.c><b>p4.c</b></a>:
 
+<b><a href=p4.c>p4.c</a></b>
+
 <p><center><table border=3 cellpadding=3><td><pre>
-main()
+int main()
 {
   char c;
   int i;
@@ -597,15 +640,15 @@ main()
   i = c;
   f = i;
   printf("c = %d (%c).   i = %d (%c).  f = %f\n", c, c, i, i, f);
+  exit(0);
 }
-
 </pre></td></table></center><p>
 
 The statement `<b>i = c</b>' is a type cast, as is the statement `<b>f = i</b>'.
 <p>
 Some type castings, like the one above, are very natural.  The C compiler 
-will do these for you without complaining.  Most others, however, the C
-compiler will complain about, unless you specifically tell it that you are
+will do these for you without complaining.  For most others, the C
+compiler will spit out a warning, unless you specifically tell it that you are
 doing a type cast (this is a way of telling the compiler ``Yes, I know 
 what I'm doing.'').  
 <p>
@@ -625,14 +668,15 @@ UNIX> <font color=darkred><b></b></font>
 
 What's going on is that the compiler parses the format string of <b>printf()</b> and gleans that
 "%lx" desires a <b>long unsigned int</b>, but it's getting an <b>(int *)</b>.  You go ahead
-and perform a type cast on the argument to tell the compiler "Yes, this is an (int *) but treat
-it like a <b>(long unsigned int)</b>, please.  I know what I'm doing."  That's in 
+and perform a type cast on the argument to tell the compiler "Yes, this is an <b>(int *)</b>, 
+but treat it like a <b>(long unsigned int)</b>, please.  I know what I'm doing."  That's in 
 <b><a href=p5.c>p5.c</a></b>:
 
 <p><center><table border=3 cellpadding=3><td><pre>
 #include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
 
-main()
+int main()
 {
   int i;
   char j[14];
@@ -643,6 +687,7 @@ main()
   jp = j;
 
   printf("ip = 0x%lx.  jp = 0x%lx\n", (long unsigned int) ip, (long unsigned int) jp);
+  exit(0);
 }
 </pre></td></table></center><p>
 
@@ -658,6 +703,9 @@ ip = 0x7fff6ad53dfc.  jp = 0x7fff6ad53e00
 UNIX> <font color=darkred><b></b></font>
 </pre>
 
+(As an aside, some compilers won't print out those warning.  For example, on my 
+Pi, there is no warning on <b>p3.c</b>.  So it goes.)
+<p>
 On some machines (not ours), both pointers and <b>int</b>s
 are 4 bytes.  This has led many people to treat pointers and <b>int</b>s as
 interchangable.  For example, look at the code in 
@@ -668,33 +716,41 @@ interchangable.  For example, look at the code in
 #include &lt;stdlib.h&gt;
 #include &lt;string.h&gt;
 
-main()
+typedef long unsigned int LUI;
+
+int main()
 {
   char s[4];
   int i;
   char *s2;
 
-  strcpy(s, "Jim");
+  <font color=blue>/* Copy the string "Jim" to s, then turn the pointer into an integer i.
+     Print out the pointer's value, and i's value. */</font>
+
+  strcpy(s, "Jim"); 
   i = (int) s;
   printf("i = %d (0x%x)\n", i, i);
-  printf("s = %ld (0x%lx)\n", (long unsigned int) s, (long unsigned int) s);
+  printf("s = %ld (0x%lx)\n", (LUI) s, (LUI) s);
+
+  <font color=blue>/* Now increment i, and turn it back into a pointer.  
+     Print out the pointers, and then attempt to print out what they point to. */</font>
 
   i++;
   s2 = (char *) i;
-  printf("s = 0x%lx.  s2 = 0x%lx, i = 0x%x\n", 
-           (long unsigned int) s, 
-           (long unsigned int) s2, i);
+  printf("s = 0x%lx.  s2 = 0x%lx, i = 0x%x\n", (LUI) s, (LUI) s2, i);
   printf("s[0] = %c, s[1] = %c, *s2 = %c\n", s[0], s[1], *s2);
+  exit(0);
 }
 </pre></td></table></center><p>
 
 When you set <b>i</b> equal to <b>s</b>, you are losing 4 bytes of information,
 because <b>ints</b> are four bytes, and pointers are eight.  When you set <b>s2</b>
-back to <i>i</i>, it fills in those four bytes that <b>i</b> is missing.  Thus it
+back to <i>i</i>, it fills in the four bytes that <b>i</b> is missing, typically with zeros,
+but sometimes with -1's.  In either case, it
 will be an illegal address, and you will get a segmentation violation:
 
 <pre>
-UNIX> <font color=darkred><b>p8</b></font>
+UNIX> <font color=darkred><b>./p8</b></font>
 i = -206846176 (0xf3abc720)
 s = 140737281509152 (0x7ffff3abc720)
 s = 0x7ffff3abc720.  s2 = 0xfffffffff3abc721, i = 0xf3abc721
@@ -719,9 +775,7 @@ UNIX> <font color=darkred><b></b></font>
 </pre>
 
 On a machine with 32-bit pointers, this code will work fine, because now integers and
-pointers are the same size.  You can force
-our machines to do that with the compilation flag "-m32", and the program
-works well.  The compiler doesn't complain either:
+pointers are the same size.  The compiler will not complain either:
 
 <pre>
 UNIX> <font color=darkred><b>gcc -m32 -o p8-32 p8.c</b></font>
@@ -731,6 +785,18 @@ s = -4643812 (0xffb9241c)
 s = 0xffb9241c.  s2 = 0xffb9241d, i = 0xffb9241d
 s[0] = J, s[1] = i, *s2 = i
 UNIX> <font color=darkred><b></b></font>
+</pre>
+
+Same thing on my Pi:
+
+<pre>
+pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ <font color=darkred><b>gcc -o p8 p8.c</b></font>
+pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ <font color=darkred><b>./p8</b></font>
+i = 2126570764 (0x7ec0e50c)
+s = 2126570764 (0x7ec0e50c)
+s = 0x7ec0e50c.  s2 = 0x7ec0e50d, i = 0x7ec0e50d
+s[0] = J, s[1] = i, *s2 = i
+pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ 
 </pre>
 
 If we instead use a <b>long</b> for <b>i</b> instead of an <b>int</b>, everything works fine,
@@ -744,26 +810,28 @@ makes the requisite changes:
 #include &lt;stdlib.h&gt;
 #include &lt;string.h&gt;
 
-main()
+typedef long unsigned int LUI;
+
+int main()
 {
   char s[4];
   long i;
   char *s2;
 
-  strcpy(s, "Jim");
+  <font color=blue>/* This is the same as p8.c, but we've changed i to a long. */</font>
+
+  strcpy(s, "Jim"); 
   i = (long) s;
   printf("i = %ld (0x%lx)\n", i, i);
-  printf("s = %ld (0x%lx)\n", (long unsigned int) s, (long unsigned int) s);
+  printf("s = %ld (0x%lx)\n", (LUI) s, (LUI) s);
 
   i++;
   s2 = (char *) i;
-  printf("s = 0x%lx.  s2 = 0x%lx, i = 0x%lx\n", 
-           (long unsigned int) s, 
-           (long unsigned int) s2, i);
+  printf("s = 0x%lx.  s2 = 0x%lx, i = 0x%lx\n", (LUI) s, (LUI) s2, i);
   printf("s[0] = %c, s[1] = %c, *s2 = %c\n", s[0], s[1], *s2);
+  exit(0);
 }
 </pre></td></table></center><p>
-
 <pre>
 UNIX> <font color=darkred><b>make p9</b></font>
 gcc -g -c p9.c
@@ -779,7 +847,8 @@ UNIX> <font color=darkred><b></b></font>
 Compilers and machines all differ.  Some machines (like my old macintosh) have 32-bit
 pointers and rather laconic compilers that don't give you many warnings.  Others,
 like our lab machines, have 64-bit pointers and downright chatty compilers.
-Be ready for all of them.
+My philosophy is to try to program so that none of them have warnings.  That can be
+a challenge, but you should strive to do the same.
 
 <hr>
 <h2>Malloc and Free</h2>
@@ -819,6 +888,8 @@ For now, take a look at
 #include &lt;stdio.h&gt;
 #include &lt;stdlib.h&gt;
 
+<font color=blue>/* This allocates n integers, error checks and returns a pointer to them. */</font>
+
 int *give_me_some_ints(int n)
 {
   int *p;
@@ -829,6 +900,8 @@ int *give_me_some_ints(int n)
   return p;
 }
 
+<font color=blue>/* This takes a pointer to n integers and assigns them to random numbers. */</font>
+
 void fill_in_the_ints(int *a, int n)
 {
   int i;
@@ -836,7 +909,9 @@ void fill_in_the_ints(int *a, int n)
   for (i = 0; i &lt; n; i++) a[i] = lrand48();
 }
 
-main(int argc, char **argv)
+<font color=blue>/* This reads the command line, allocates, assigns and prints n integers. */</font>
+
+int main(int argc, char **argv)
 {
   int *array;
   int size;
@@ -858,6 +933,17 @@ returns a pointer to the array.  <b>fill_in_the_ints()</b> takes a pointer to th
 plus its size, and fills it in.  Because we are passing pointers, no copies of the array
 are made.  In other words, <b>fill_in_the_ints()</b> fills in the array that was created
 by the <b>malloc()</b> call.  Finally, we print out the array.
+<p>
+Note the difference between C and C++ here:
+
+<UL>
+<LI> You have to tell <b>malloc()</b> how many bytes you want.
+<LI> <b>malloc()</b> does not know how its memory is being used -- it simply allocates bytes.
+<LI> You have to keep track of the array's size.  That is inconvenient compared to a vector.
+<LI> There are no reference variables in C.  Parameters are always copied.  Here, it's the
+    pointer that is being copied, not the data to which it is pointing.
+<LI> For that reason, there is only one copy of the array in this program.
+</UL>
 
 <p>
 <b>free()</b> returns the memory so that it may be reused.  It is analogous to <b>delete</b>
@@ -892,19 +978,20 @@ generates a segmentation violation by trying to dereference NULL:
 
 <p><center><table border=3 cellpadding=3><td><pre>
 #include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
 
-main()
+int main()
 {
   char *s;
 
   s = NULL;
 
   printf("%d\n", s[0]);
+  exit(0);
 }
 </pre></td></table></center><p>
-
 <pre>
-UNIX> <font color=darkred><b>pa</b></font>
+UNIX> <font color=darkred><b>./pa</b></font>
 Segmentation fault
 UNIX> <font color=darkred><b></b></font>
 </pre>
@@ -917,6 +1004,174 @@ is an <b>(int *)</b>, then if <b>i</b> is not a multiple of 4, dereferencing <b>
 be an error.  This error is manifested by a <i>bus error</i>.
 Unfortunately, our machines don't demonstrate this problem, so I won't 
 write code for it.
+
+<hr>
+<h2>A few quick examples with scanf()</h3>
+
+<b>Scanf()</b> is like <b>printf()</b> in that it takes a format string and some
+parameters.  However, instead of writing the parameters to the terminal, it reads
+from the terminal (or whatever is standard input).  
+Where <b>scanf()</b> confuses
+people is that there are no reference variables in C, so you have to use pointers.
+If you put "%d" in the format string, then <b>scanf()</b> will read an integer.
+The parameter that you have to pass is a pointer to the integer that you want
+read.  The storage for the integer has to exist.  <b>Scanf()</b> will read the
+integer from standard input, and will fill in the four bytes of the integer.
+<p>
+Here's a simple example in 
+<b><a href=scanf1.c>scanf1.c</a></b>:
+
+<p><center><table border=3 cellpadding=3><td><pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main()
+{
+  int i;
+  
+  if (scanf("%d", &i) == 1) {
+    printf("Just read i: %d (0x%x)\n", i, i);
+  } else {
+    printf("Scanf() failed for some reason.\n");
+  }
+  exit(0);
+}
+</pre></td></table></center><p>
+
+I have one integer, <b>i</b>.  That's four bytes.  They are located at <i>i</i>'s
+pointer: <b>&amp;i</b>.
+When I call <b>scanf()</b>, I say
+to read an integer from standard input, and fill in those four bytes with that
+integer.  <b>Scanf()</b> returns the number of successful reads that it did.
+If our read is successful, the program prints <i>i</i> in decimal and in hexadecimal.
+<p>
+<pre>
+UNIX> <font color=darkred><b>scanf1</b></font>
+<font color=darkred><b>10</b></font>
+Just read i: 10 (0xa)
+UNIX> <font color=darkred><b>scanf1</b></font>
+<font color=darkred><b>Fred</b></font>
+Scanf() failed for some reason.
+UNIX> <font color=darkred><b>scanf1</b></font>
+<font color=darkred><b>15.999999999999</b></font>
+Just read i: 15 (0xf)
+UNIX> <font color=darkred><b>scanf1</b></font>
+<font color=darkred><b>-15.99999999999999</b></font>
+Just read i: -15 (0xfffffff1)
+UNIX> <font color=darkred><b>scanf1</b></font>
+<font color=darkred><b>&lt;CNTL-D&gt;</b></font>
+Scanf() failed for some reason.
+UNIX> <font color=darkred><b>echo "" | scanf1</b></font>
+Scanf() failed for some reason.
+UNIX> <font color=darkred><b>echo 15fred | scanf1</b></font>
+Just read i: 15 (0xf)
+UNIX>
+</pre>
+
+Let's go over these examples.
+<UL>
+<LI> The first successfully reads 10.
+<LI> In the second,
+I didn't enter a number, so the <b>scanf()</b> call made no matches.
+<LI> In the third, <b>scanf()</b> stops reading when it decides that the input is no longer
+an integer.  In this case, that's at the decimal point, so it successfully reads 15.
+<LI> The same thing happens in the fourth case -- <b>scanf()</b> is not rounding off --
+it's simply reading text until it decides that its no longer reading a number.
+<LI> In the fifth case, I type <b>&lt;CNTL-D&gt;</b>, which ends standard input.
+<b>scanf()</b> in this case returns <b>EOF</b> (defined in <b>stdio.h</b>).  It is
+a negative number, so our program prints that <b>scanf()</b> failed.
+<LI> In the sixth case, I use the program <b>echo</b> to provide standard input.
+In this case, <b>echo</b> produces a blank line, so <b>scanf()</b> returns <b>EOF</b> again.
+<LI> Finally, the last case uses <b>echo</b> again to show that <b>scanf()</b> will successfully
+read the 15.
+</UL>
+
+<p>
+The program <b><a href=scanf2.c>scanf2.c</a></b> is buggy.
+
+<p><center><table border=3 cellpadding=3><td><pre>
+int main()
+{
+  int *i;
+
+  printf("i = 0x%lx\n", (unsigned long) i);
+  if (scanf("%d", i) == 1) {
+    printf("Just read i: %d (0x%x)\n", *i, *i);
+  } else {
+    printf("Scanf() failed for some reason.\n");
+  }
+  exit(0);
+}
+</pre></td></table></center><p>
+
+It will compile (although some nosy compilers will figure out it's buggy and yell at you).
+However, it usually won't run without a problem.  Here it is on my Mac:
+
+<pre>
+UNIX> <font color=darkred><b>echo 10 | scanf2</b></font>
+i = 0x7fff5fc01052
+Bus error
+UNIX>
+</pre>
+
+What happened?  The answer is that <i>i</i> is an uninitialized variable.  It randomly
+started with a value of 0x7fff5fc01052.  When <b>scanf()</b> tried to stuff 10 into
+those four bytes, a hardware error was generated -- that's the bus error.  If you're
+lucky, when your program has uninitialized variables, they lead to segmentation
+violations and bus errors.  If you're unlucky, they won't, and you don't discover
+your bug until (potentially much) later.
+<P>
+<h3>Strings and scanf</h3>
+
+A string in C is an array of <b>char</b>'s.  Recall, a char is a one-byte integer,
+which means that it has values between -128 and 127.  Each of those values matches
+to a printable character, with zero equalling the "null" character.
+A string is an array of char's that ends with the null character.  The following
+program
+(<b><a href=scanf3.c>scanf3.c</a></b>)
+uses <b>scanf()</b> to read a string from standard input, and then to print
+the individual characters:
+
+<p><center><table border=3 cellpadding=3><td><pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main()
+{
+  char s[10];
+  int i;
+
+  if (scanf("%s", s) != 1) exit(0);
+
+  for (i = 0; s[i] != '\0'; i++) {
+    printf("Character: %d: %3d %c\n", i, s[i], s[i]);
+  }
+  exit(0);
+}
+
+Since an array variable like <b>s</b> is equivalent to a pointer
+to the first element, we do not have to pass <b>&amp;s</b>
+to <b>scanf()</b> -- we simply pass <b>s</b>.
+<p>
+This program allows us to see the ASCII character codes for the characters
+in the string "Jim-Plank":
+
+<pre>
+UNIX> <font color=darkred><b>echo "Jim-Plank" | scanf3</b></font>
+Character: 0:  74 J
+Character: 1: 105 i
+Character: 2: 109 m
+Character: 3:  45 -
+Character: 4:  80 P
+Character: 5: 108 l
+Character: 6:  97 a
+Character: 7: 110 n
+Character: 8: 107 k
+UNIX> <font color=darkred><b></b></font>
+</pre>
+
+<b>scanf()</b> with strings is problematic.  I will include an example in the next lecture.
+
 
 <hr>
 <h2>More Type Casting, Memory and Representations</h2>
@@ -947,23 +1202,23 @@ typedef unsigned long UL;
 
 int main () {
 
-  /*
+  <font color=blue>/*
     I used unsigned variables to shut up the compiler
     and to prevent preservation of negative integers when
     examining the contents of the array when viewed as
     individual bytes.
-  */
-  unsigned int arr[4];  /* An array of 4 integers */
-  unsigned char* bp;    /* Pointer to be used to examine byte order */
-  unsigned int* arrp;   /* Pointer to offset array */
+  */</font>
+  unsigned int arr[4];  <font color=blue>/* An array of 4 integers */</font>
+  unsigned char* bp;    <font color=blue>/* Pointer to be used to examine byte order */</font>
+  unsigned int* arrp;   <font color=blue>/* Pointer to offset array */</font>
 
-  int i;  /* generic */
+  int i;  <font color=blue>/* generic */</font>
 
-  /*
+  <font color=blue>/*
     Each byte in the array will be uniquely identified by a sequence
     two hex digits.  This was arbitrarily chosen as to ease visual
     identification of individual bytes;
-  */
+  */</font>
   arr[0] = 0x00112233;
   arr[1] = 0x44556677;
   arr[2] = 0x8899AABB;
@@ -975,10 +1230,10 @@ int main () {
             i, (UL) (arr+i), (int) sizeof(int), (UL) arr[i] );
   }
 
-  /*
+  <font color=blue>/*
     This section sets bp equal to arr.
     We may now use bp to access the array as individual bytes.
-  */
+  */</font>
 
   bp = (unsigned char *) arr;
   printf( "\nBYTE array: 0x%08lX\n", (UL) bp );
@@ -987,9 +1242,9 @@ int main () {
   }
   printf( "\n\n" );
 
-  /*
+  <font color=blue>/*
     Here we first increment the character pointer by one.
-  */
+  */</font>
   arrp = (unsigned int *) ( bp + 1 );
   printf( "Original array begin: 0x%08lX\n", (UL) arr );
   printf( "Offset array begin:   0x%08lX\n", (UL) arrp );
@@ -1169,21 +1424,25 @@ UNIX> <font color=darkred><b></b></font>
 This looks idiotic, but it is at the heart of most type bugs.
 Look at <a href=pc.c><c>pc.c</c></a>:
 
+<b><a href=pc.c>pc.c</a></b>
+
 <p><center><table border=3 cellpadding=3><td><pre>
 #include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
 
-main()
+int main()
 {
   char c;
   int i;
   int j;
 
   i = 10000;
-  c = i;
+  c = i;             <font color=blue>/* You are losing information here. */</font>
   j = c;
 
   printf("I: %d,   J: %d,       C: %d\n", i, j, c);
   printf("I: 0x%04x,  J: 0x%04x,   C: 0x%04x\n", i, j, c);
+  exit(0);
 }
 </pre></td></table></center><p>
 

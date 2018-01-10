@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* This allocates n integers, error checks and returns a pointer to them. */
+
 int *give_me_some_ints(int n)
 {
   int *p;
@@ -11,12 +13,16 @@ int *give_me_some_ints(int n)
   return p;
 }
 
+/* This takes a pointer to n integers and assigns them to random numbers. */
+
 void fill_in_the_ints(int *a, int n)
 {
   int i;
 
   for (i = 0; i < n; i++) a[i] = lrand48();
 }
+
+/* This reads the command line, allocates, assigns and prints n integers. */
 
 int main(int argc, char **argv)
 {
