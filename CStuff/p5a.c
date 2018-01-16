@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+typedef long unsigned int LU;
+
 int main()
 {
   int i;
@@ -11,8 +13,6 @@ int main()
   ip = &i;
   jp = j;
 
-  printf("ip = 0x%lx.  jp = 0x%lx\n", 
-         (long unsigned int) ip, 
-         (long unsigned int) jp);
+  printf("ip = 0x%lx.  jp = 0x%lx\n", (LU) ip, (LU) jp);
   exit(0);
 }

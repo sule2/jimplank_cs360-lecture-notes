@@ -650,7 +650,7 @@ through <b>0x7fff2efcddad</b>
 are allocated for the array <b>j</b>.  When you run this on your own machine,
 you will get different pointer values.  Regardless of the pointer values,
 <b>ip</b> will point to the first of the four bytes of <b>i</b>, and 
-<b>ip</b> will point to the first of the fourteen bytes of <b>j</b>, and 
+<b>jp</b> will point to the first of the fourteen bytes of <b>j</b>.
 <p>
 Note that I said ``<b>jp = j</b>'' and not ``<b>jp = &j</b>''.  
 This is because when 
@@ -705,12 +705,18 @@ int main()
 </pre></td></table></center><p>
 
 The statement `<b>i = c</b>' is a type cast, as is the statement `<b>f = i</b>'.
+There are no surprises when we run this:
+<pre>
+UNIX> <font color=darkred><b>./p4</b></font>
+c = 97 (a).   i = 97 (a).  f = 97.000000
+UNIX> <font color=darkred><b></b></font>
+</pre>
 <p>
-Some type castings, like the one above, are very natural.  The C compiler 
+Some type castings, like the ones above, are very natural.  The C compiler 
 will do these for you without complaining.  For most others, the C
 compiler will spit out a warning, unless you specifically tell it that you are
-doing a type cast (this is a way of telling the compiler ``Yes, I know 
-what I'm doing.'').  
+doing a type cast. This is a way of telling the compiler ``Yes, I know 
+what I'm doing.''  
 <p>
 An example is program 
 <b><a href=p3.c>p3.c</a></b> above -- as mentioned, when we compile it, we
@@ -734,9 +740,12 @@ What's going on is that the compiler parses the format string of <b>printf()</b>
 "%lx" desires a <b>long unsigned int</b>, but it's getting an <b>(int *)</b>.  You go ahead
 and perform a type cast on the argument to tell the compiler "Yes, this is an <b>(int *)</b>, 
 but treat it like a <b>(long unsigned int)</b>, please.  I know what I'm doing."  That's in 
-<b><a href=p5.c>p5.c</a></b>:
+<b><a href=p5.c>p5.c</a></b>.  To the right, I've used a <b>typedef</b> to make those typecasts
+a little less unweidly.  It's a good trick to know:
 
-<p><center><table border=3 cellpadding=3><td><pre>
+<p><center><table border=3 cellpadding=3><td valign=top>
+<b><a href=p5.c>p5.c</a></b><hr>
+<pre>
 #include &lt;stdio.h&gt;
 #include &lt;stdlib.h&gt;
 
@@ -750,28 +759,58 @@ int main()
   ip = &i;
   jp = j;
 
-  printf("ip = 0x%lx.  jp = 0x%lx\n", (long unsigned int) ip, (long unsigned int) jp);
+  printf("ip = 0x%lx.  jp = 0x%lx\n", 
+         (long unsigned int) ip, 
+         (long unsigned int) jp);
+  exit(0);
+}
+</pre></td>
+<td valign=top>
+<b><a href=p5a.c>p5a.c</a></b><hr>
+<pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+typedef long unsigned int LU;
+
+int main()
+{
+  int i;
+  char j[14];
+  int *ip;
+  char *jp;
+
+  ip = &i;
+  jp = j;
+
+  printf("ip = 0x%lx.  jp = 0x%lx\n", (LU) ip, (LU) jp);
   exit(0);
 }
 </pre></td></table></center><p>
+
+
+</table></center><p>
 
 The compiler, happy that you have taken responsibility for using mixmatched types,
 compiles it without any warnings:
 
 <pre>
-UNIX> <font color=darkred><b>make p5</b></font>
+UNIX> <font color=darkred><b>make p5 p5a</b></font>
 gcc  -o p5 p5.c
+gcc  -o p5a p5a.c
 UNIX> <font color=darkred><b>./p5</b></font>
-ip = 0x7fff6ad53dfc.  jp = 0x7fff6ad53e00
+ip = 0x7fff57350268.  jp = 0x7fff5735025a
+UNIX> <font color=darkred><b>./p5a</b></font>
+ip = 0x7fff52ba1268.  jp = 0x7fff52ba125a
 UNIX> <font color=darkred><b></b></font>
 </pre>
 
-(As an aside, some compilers won't print out those warnings.  For example, on my 
-Pi, there is no warning on <b>p3.c</b>.  So it goes.)
+As an aside, some compilers won't print out those warnings.  For example, on my 
+Pi, there is no warning on <b>p3.c</b>.  So it goes.
 <p>
 On some machines (not ours), both pointers and <b>int</b>s
 are 4 bytes.  This has led many people to treat pointers and <b>int</b>s as
-interchangable.  For example, look at the code in 
+interchangeable.  For example, look at the code in 
 <b><a href=p8.c>p8.c</a></b>
 
 <p><center><table border=3 cellpadding=3><td><pre>
@@ -814,8 +853,11 @@ will be an illegal address, and you will get a segmentation violation:
 
 <pre>
 UNIX> <font color=darkred><b>./p8</b></font>
+Before incrementing i.
 i = -206846176 (0xf3abc720)
 s = 140737281509152 (0x7ffff3abc720)
+
+After incrementing i.
 s = 0x7ffff3abc720.  s2 = 0xfffffffff3abc721, i = 0xf3abc721
 Segmentation fault
 UNIX> <font color=darkred><b></b></font>
@@ -843,8 +885,11 @@ pointers are the same size.  The compiler will not complain either:
 <pre>
 UNIX> <font color=darkred><b>gcc -m32 -o p8-32 p8.c</b></font>
 UNIX> <font color=darkred><b>p8-32</b></font>
+Before incrementing i.
 i = -4643812 (0xffb9241c)
 s = -4643812 (0xffb9241c)
+
+After incrementing i.
 s = 0xffb9241c.  s2 = 0xffb9241d, i = 0xffb9241d
 s[0] = J, s[1] = i, *s2 = i
 UNIX> <font color=darkred><b></b></font>
@@ -856,8 +901,11 @@ Same thing on my Pi:
 pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ <font color=darkred><b>make p8</b></font>
 gcc -o p8 p8.c
 pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ <font color=darkred><b>./p8</b></font>
+Before incrementing i.
 i = 2126570764 (0x7ec0e50c)
 s = 2126570764 (0x7ec0e50c)
+
+After incrementing i.
 s = 0x7ec0e50c.  s2 = 0x7ec0e50d, i = 0x7ec0e50d
 s[0] = J, s[1] = i, *s2 = i
 pi@raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ 
@@ -870,10 +918,6 @@ The program
 makes the requisite changes:
 
 <p><center><table border=3 cellpadding=3><td><pre>
-#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;string.h&gt;
-
 typedef long unsigned int LUI;
 
 int main()
@@ -886,11 +930,14 @@ int main()
 
   strcpy(s, "Jim"); 
   i = (long) s;
+  printf("Before incrementing i.\n");
   printf("i = %ld (0x%lx)\n", i, i);
   printf("s = %ld (0x%lx)\n", (LUI) s, (LUI) s);
 
   i++;
   s2 = (char *) i;
+  printf("\n");
+  printf("After incrementing i.\n");
   printf("s = 0x%lx.  s2 = 0x%lx, i = 0x%lx\n", (LUI) s, (LUI) s2, i);
   printf("s[0] = %c, s[1] = %c, *s2 = %c\n", s[0], s[1], *s2);
   exit(0);
