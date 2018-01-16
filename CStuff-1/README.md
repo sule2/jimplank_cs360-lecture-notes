@@ -1,4 +1,4 @@
-# CS360 Lecture Notes.  Lecture #1: Getting Started with C, Types, Pointers, Casting, Malloc, Segementation Violations and Bus Errors
+# "C Stuff 1:" Getting Started with C, Scalar Types and Aggregate Types
 
 James S. Plank
 
