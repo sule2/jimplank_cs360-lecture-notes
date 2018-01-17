@@ -754,97 +754,166 @@ Location: 0xbff344aa - Value as a short: 0x1234
 
 <hr>
 <h2>Alignment within structs</h2>
+
+As I mentioned above, some machines require pointers to be aligned.  That means that
+pointers to integers must be multiples of four, pointers to doubles must be multiples of
+eight, and pointers to shorts must be multiples of two.  
 <p>
-<b>Malloc()</b> always returns pointers that are multiples of 8
--- therefore using <b>malloc()</b> to allocate any scalar type or
-array of scalar types will generate pointers that are correctly
-aligned.  
+In order to meet this requirement, compilers and runtime libraries have been designed
+with two features:
+
+<OL>
+<LI> <b>Malloc()</b> always returns pointers that are multiples of 8.  Remember that
+<b>malloc()</b> does not know the type of the data that will be using the memory that
+it allocates.  So, it always returns a multiple of 8, just to be safe.
 <p>
-Moreover, the compiler always lays out structs so that the fields are
-aligned.  Thus, in the following struct:
-<pre>
-struct {
+<LI> The compiler lays out <b>structs</b> so that its variables are in order in memory,
+and they will be aligned if
+the base pointer for the <b>struct</b> itself is a multiple of eight.  That means that
+the compiler may put some padding into a struct, and make it bigger than you think it
+should be.
+</OL>
+
+To explore this, take a look at the program
+<b><a href=pd.c>pd.c</a></b>.  This program defines four structs:
+
+<p><center><table border=3 cellpadding=3><td valign=top><pre>
+typedef struct {
   char b;
   int i;
-}
-</pre>
-The whole struct will be 8 bytes -- 1 for <b>b</b>, 3 unused, and 4 for <b>i</b>.
-The 3 bytes are necessary so that <b>i</b> will be aligned.  The compiler
-does not shuffle around the fields so that they pack into memory better.
-So, for example, if you have:
-<pre>
-struct {
+} Char_Int;
+</pre></td>
+
+<td valign=top><pre>
+typedef struct {
+  char b1;
+  char b2;
+  char b3;
+  char b4;
+  int i1;
+} CCCC_Int;
+</pre></td>
+
+<td valign=top><pre>
+typedef struct {
   char b1;
   int i1;
   char b2;
   int i2;
-}
-</pre>
-The struct will be 16 bytes:
-<UL>
-<li> 1 for <b>b1</b>
-<li> 3 unused
-<li> 4 for <b>i1</b>
-<li> 1 for <b>b2</b>
-<li> 3 unused
-<li> 4 for <b>i2</b>
-</UL>
-<p>
-However, if you order them differently, you can get all of those fields into
-12 bytes:
-<pre>
-struct {
-  char b1;
-  char b2;
-  int i1;
-  int i2;
-}
-</pre>
-Now the struct will have:
-<UL>
-<li> 1 byte for <b>b1</b>
-<li> 1 byte for <b>b2</b>
-<li> 2 unused bytes
-<li> 4 bytes for <b>i1</b>
-<li> 4 bytes for <b>i2</b>
-</UL>
+} C_I_C_I;
+</pre></td>
 
-Finally, the following struct's size is also 8 bytes, even though you may initially think it
-should only be five:
-
-<pre>
+<td valign=top><pre>
 typedef struct {
   int i;
   char b;
-} S1B;
-</pre>
-
-Why?  Because if you wanted to allocate an array of ten of these using <b>malloc()</b>, you'd
-do the following:
-
-<p><center><table border=3 cellpadding=3><td><pre>
-S1B *s;
-
-s = (S1B *) malloc(sizeof(S1B)*10);
+} Int_Char;
 </pre></td></table></center><p>
 
-Now, suppose <b>sizeof(S1B)</b> is only 5.  We know that <b>s</b> will be a multiple of 8
-because <b>malloc()</b> guarantees that.  What about <b>&amp;(s[1])</b>?  That will be five
-bytes greater than <b>s</b>, which means it won't be a multiple of 8 -- of a multiple of 4.
-It is unaligned, and importantly <b>s[1].i</b> is unaligned.  By making <b>sizeof(S1B)</b>
-be 8, we have no alignment problems when we use the type in an array.
-<p>
+For each of these structs, I print the struct's size.  Then, I 
+allocate an array composed of two structs, and then I 
+look at the pointers to each variable.  Here's the code for the
+<b>Char_Int</b> struct:
 
-The program 
-<b><a href=pd.c>pd.c</a></b>
-confirms all of these assertions:
+<p><center><table border=3 cellpadding=3><td valign=top><pre>
+  Char_Int *ci;
+
+  ci = (Char_Int *) malloc(sizeof(Char_Int)*2);
+  printf("The size of a Char_Int is %ld\n", sizeof(Char_Int));
+  printf("I have allocated an array, ci, of two Char_Int's at location 0x%lx\n", (UL) ci);
+  printf("&(ci[0].b) = 0x%lx\n", (UL) &(ci[0].b));
+  printf("&(ci[0].i) = 0x%lx\n", (UL) &(ci[0].i));
+  printf("&(ci[1].b) = 0x%lx\n", (UL) &(ci[1].b));
+  printf("&(ci[1].i) = 0x%lx\n", (UL) &(ci[1].i));
+  printf("\n");
+</pre></td></table></center><p>
+
+I'm not going to include the code for the other structs, because it is very similar to
+the code above.  Let's look at the output for each struct in turn:
 
 <pre>
-UNIX> <font color=darkred><b>pd</b></font>
-8 16 12 8
-UNIX> <font color=darkred><b></b></font>
+UNIX> <font color=darkred><b>./pd</b></font>
+The size of a Char_Int is 8
+I have allocated an array, ci, of two Char_Int's at location 0x7f81aac03260
+&(ci[0].b) = 0x7f81aac03260
+&(ci[0].i) = 0x7f81aac03264
+&(ci[1].b) = 0x7f81aac03268
+&(ci[1].i) = 0x7f81aac0326c
 </pre>
 
+Although the struct only uses five bytes (one for <b>b</b> and four for <b>i</b>), the
+size of the struct is 8 bytes.  When we look at the pointers, we see that the first 
+byte of the struct is where you find <b>b</b>, and <b>i</b> is four bytes after <b>b</b>.
+The three bytes between <b>b</b> and <b>i</b> are unused.  Why is this so?  The
+reason is that the pointer for <b>i</b> must be a multiple of four, and <b>b</b>'s address
+has to come before <b>i</b>'s address (this is a compiler standard).  The only way to 
+make that so is to have the three bytes after <b>b</b> be unused.
+
+<p>
+Let's look at the output for the <b>CCCC_Int</b> struct:
+
+<pre>
+The size of a CCCC_Int is 8
+I have allocated an array, cccci, of two CCCC_Int's at location 0x7f81aac03270
+&(cccci[0].b1) = 0x7f81aac03270
+&(cccci[0].b2) = 0x7f81aac03271
+&(cccci[0].b3) = 0x7f81aac03272
+&(cccci[0].b4) = 0x7f81aac03273
+&(cccci[0].i1) = 0x7f81aac03274
+&(cccci[1].b1) = 0x7f81aac03278
+&(cccci[1].b2) = 0x7f81aac03279
+&(cccci[1].b3) = 0x7f81aac0327a
+&(cccci[1].b4) = 0x7f81aac0327b
+&(cccci[1].i1) = 0x7f81aac0327c
+</pre>
+
+As you can see, this struct makes optimal use of memory -- the variables take up 8 bytes,
+and the size of the data structure is 8.  The pointer for <b>i</b> is aligned - Perfect!  
+
+<p>
+The <b>C_I_C_I</b> struct is less optimally arranged.  Here's its output:
+
+<pre>
+The size of a C_I_C_I is 16
+I have allocated an array, cici, of two C_I_C_I's at location 0x7f81aac03280
+&(cici[0].b1) = 0x7f81aac03280
+&(cici[0].i1) = 0x7f81aac03284
+&(cici[0].b2) = 0x7f81aac03288
+&(cici[0].i2) = 0x7f81aac0328c
+&(cici[1].b1) = 0x7f81aac03290
+&(cici[1].i1) = 0x7f81aac03294
+&(cici[1].b2) = 0x7f81aac03298
+&(cici[1].i2) = 0x7f81aac0329c
+</pre>
+
+In order to make sure that the pointers for <b>i1</b> and <b>i2</b> are aligned, we have
+to waste the three bytes after <b>b1</b> and the three bytes after <b>b2</b>.  If we defined
+<b>b2</b> right after <b>b1</b>, the size of the data structure would be 12 rather than 16.
+
+<p>
+Now, look at the last lines of output, for <b>Int_Char</b>.  It may surprise you:
+
+<pre>
+The size of a Int_Char is 8
+I have allocated an array, ic, of two Int_Char's at location 0x7f81aac03290
+&(ic[0].i) = 0x7f81aac03290
+&(ic[0].b) = 0x7f81aac03294
+&(ic[1].i) = 0x7f81aac03298
+&(ic[1].b) = 0x7f81aac0329c
+</pre>
+
+Most students think that <b>sizeof(Int_Char)</b> should be five, because the <b>i</b>
+pointer is the beginning of the struct, and should be aligned, and the
+<b>b</b> pointer doesn't have to worry about alignment.  That would be true if we only
+allocated one of these structs.  However, if we allocate an array of two structs, then
+the second one needs to be aligned too -- if the size of the struct were 5, then <b>ic[1].i</b>
+would not be aligned.  To fix that, the size of the struct is 8, and the three bytes after
+<b>b</b> are wasted.  
+
+<p>
+The bottom line is that if you care about memory, you should lay your structs out
+so that you don't waste too much memory.  If you don't care about memory, don't worry
+about it (or just keep writing programs in Python.....)
 
 <hr>
 <h2>A Common Type Bug</h2>

@@ -1,6 +1,6 @@
 CC = gcc
 
-EXECUTABLES = endian p3 p4 p5 p5a p8 p9 pa pc pd pe pm
+EXECUTABLES = endian p3 p4 p5 p5a p8 p9 pa pc pd pm
 
 all: $(EXECUTABLES)
 
