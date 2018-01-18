@@ -1,0 +1,13 @@
+                    |   |   |   |   | 0xbfffe040
+                    |   |   |   |   | 0xbfffe044
+                    |   |   |   |   | 0xbfffe048
+                    |   |   |   |   | 0xbfffe04c
+                    |   |   |   |   | 0xbfffe050
+                    |   |   |   |   | 0xbfffe054
+                    |   |   |   |   | 0xbfffe058
+                    |   |   |   |   | 0xbfffe05c
+                    |   |   |   |   | 0xbfffe060
+                    |   |   |   |   | 0xbfffe064
+                    |   |   |   |   | 0xbfffe068
+                    |   |   |   |   | 0xbfffe06c
+
