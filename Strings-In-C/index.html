@@ -687,7 +687,7 @@ violations and bus errors.  If you're unlucky, they won't, and you don't discove
 your bug until (potentially much) later.
 <p>
 Just to test on some other machines,
-here is is on my Raspberry Pi in 2017:
+here it is on my Raspberry Pi in 2018:
 <pre>
 @raspberrypi:~/CS360/cs360-lecture-notes/CStuff$ <font color=darkred><b>echo 10 | ./scanf2</b></font>
 i = 0x0
@@ -723,7 +723,7 @@ This is why it pays to be careful when you are programming.
 
 As we know, a string in C is an array of <b>char</b>'s.  Recall, a char is a one-byte integer,
 which means that it has values between -128 and 127.  Each of those values matches
-to a printable character, with zero equalling the "null" character.
+to a printable character, with zero equaling the "null" character.
 A string is an array of chars that ends with the null character.  The following
 program
 (<b><a href=scanf3.c>scanf3.c</a></b>)
@@ -846,7 +846,9 @@ UNIX> <font color=darkred><b></b></font>
 The first four inputs should be straightforward.  That last one is a little
 confusing, even to me, and the man page on <b>sscanf()</b> is not helpful.
 From that, it appears that <tt>%x</tt> and <tt>%lf</tt> recognize "<tt>0x</tt>" in the input and 
-perform the proper conversion in hex.  <tt>%d</tt> does not. 
+perform the proper conversion in hex.  <tt>%d</tt> does not.   That's one of those
+"features" on which I wouldn't rely -- I bet it's not implemented on all machines (that's
+just my gut feeling).
 
 <hr>
 <h1>tail10</h1>
