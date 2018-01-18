@@ -468,7 +468,8 @@ rather than the C++ string library.  I'll do it in class.
 char *strchr(char *s, int c);
 </pre>
 
-<b>Strchr()</b> assumes that <b>s</b> is
+<b>Strchr()</b> is how you perform "find" for single characters in C strings.
+It assumes that <b>s</b> is
 a null-terminated string.  <b>C</b> is an integer, but it
 is treated as a character.  <b>Strchr()</b> returns a pointer
 to the first occurrence of the character equal to <b>c</b> 
@@ -562,6 +563,9 @@ instead of
         ptr = strchr(ptr, ' ');
 </pre>
 If you don't know, copy the code, modify it, and see for yourself!
+<p>
+If you want to find substrings rather than single characters, use <b>strstr()</b>
+(read the man page).
 
 <hr>
 <h3>Scanf()</h3>
