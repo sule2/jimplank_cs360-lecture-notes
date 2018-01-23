@@ -1,8 +1,8 @@
 # If you want to use this on your own machine, change CLASSDIR and/or INCLUDE and LIBS so
 # that they point to the correct directories/library.
 
-CLASSDIR = $(HOME)
-# CLASSDIR = /home/plank/cs360
+# CLASSDIR = $(HOME)
+CLASSDIR = /home/plank/cs360
 INCLUDE = -I$(CLASSDIR)/include
 LIBS = $(CLASSDIR)/objs/libfdr.a
 CC = gcc

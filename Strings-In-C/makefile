@@ -1,6 +1,6 @@
 # +mkmake+ -- Everything after this line is automatically generated
 
-EXECUTABLES = strcat strcat2 strchr strchr2 strcpy3 strcpy strcpy2 strlen tail10a tail10b tailany1 tailany2 tailany3 makej strcat3 strcat4 sscanf1 scanf1 scanf2 scanf3
+EXECUTABLES = strcat strcat2 strchr strchr2 strcpy3 strcpy strcpy2 strlen makej strcat3 strcat4 sscanf1 scanf1 scanf2 scanf3
 
 all: $(EXECUTABLES)
 
@@ -46,21 +46,6 @@ strcpy3: strcpy3.c
 
 strlen: strlen.c
 	$(CC) $(CFLAGS) -o strlen strlen.c
-
-tail10a: tail10a.c
-	$(CC) $(CFLAGS) -o tail10a tail10a.c
-
-tail10b: tail10b.c
-	$(CC) $(CFLAGS) -o tail10b tail10b.c
-
-tailany1: tailany1.c
-	$(CC) $(CFLAGS) -o tailany1 tailany1.c
-
-tailany2: tailany2.c
-	$(CC) $(CFLAGS) -o tailany2 tailany2.c
-
-tailany3: tailany3.c
-	$(CC) $(CFLAGS) -o tailany3 tailany3.c
 
 sscanf1: sscanf1.c
 	$(CC) $(CFLAGS) -o sscanf1 sscanf1.c
