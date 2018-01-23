@@ -5,23 +5,23 @@
 
 int main(int argc, char **argv)
 {
-  char line[1000];
   char **lastn;
   int nlines, i, n;
   IS is;
 
-  /* Error check the input */
+  /* Error check the command line. */
 
-  if (argc != 2) {
+  if (argc != 2) { fprintf(stderr, "usage: tailany1 n\n"); exit(1); }
+  if (sscanf(argv[1], "%d", &n) == 0 || n <= 0) {
     fprintf(stderr, "usage: tailany1 n\n");
+    fprintf(stderr, "       bad n: %s\n", argv[1]);
     exit(1);
   }
-  n = atoi(argv[1]);
-  if (n <= 0) exit(0);
 
   /* Allocate the array */
 
   lastn = (char **) malloc(sizeof(char *)*n);
+  if (lastn == NULL) { perror("malloc"); exit(1); }
  
   /* Allocate the IS */
 
@@ -39,12 +39,13 @@ int main(int argc, char **argv)
 
   /* Print the last n lines */
 
-  if (nlines <= n) {
-    for (i = 0; i < nlines; i++) printf("%s", lastn[i]);
-  } else {
-    for (i = nlines-n; i < nlines; i++) {
-      printf("%s", lastn[i%n]);
-    }
+  i = (nlines < n) ? 0 : nlines-n;
+  for ( ; i < nlines; i++) {
+    printf("%s", lastn[i%n]);
   }
+
+  /* Don't bother freeing stuff when you're just exiting anyway. */
+
+  exit(0);
 }
 
