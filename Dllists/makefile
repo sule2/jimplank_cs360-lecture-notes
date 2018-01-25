@@ -1,7 +1,7 @@
 CC = gcc
 
 # When I do this at home, I use the following:
-# INCLUDE = $(HOME)/include
+# INCLUDE = -I$(HOME)/include
 # LIBDIR = $(HOME)/lib
 
 INCLUDE = -I/home/plank/cs360/include
