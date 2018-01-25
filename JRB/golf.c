@@ -56,8 +56,7 @@ int main(int argc, char **argv)
 
     while(get_line(is) >= 0) {
       if (is->NF < 4 || strcmp(is->fields[is->NF-2], "F") != 0 ||
-          sscanf(is->fields[is->NF-1], "%d", &tmp) != 1 ||
-          sscanf(is->fields[is->NF-3], "%d", &tmp) != 1) {
+          sscanf(is->fields[is->NF-1], "%d", &tmp) != 1) {
         fprintf(stderr, "File %s, Line %d: Not the proper format\n",
           is->name, is->line);
         exit(1);

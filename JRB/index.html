@@ -640,7 +640,7 @@ a bunch of files with golf scores.  Examples are in
 <a href=1999_Majors><b>1999_Majors</b></a>.  The format of these
 files is:
 <pre>
-<b>Name     sunday-score</b> F <b>total-score</b>
+<b>Name     some-random-word</b> F <b>total-score</b>
 </pre>
 For example, the first few lines of 
 <a href=1999_Majors/Masters><b>1999_Majors/Masters</b></a> are:
@@ -714,7 +714,6 @@ typedef struct {
   int score;               /* Total score */
 } Score;
 </pre>
-Note, in each file, we are going to ignore the ``sunday score.''
 <p>
 So, to read in the golfers, we create a jrb tree <b>golfers</b>, which will
 have names as keys, and <b>Golfer</b> structs as vals.  We then
@@ -744,8 +743,7 @@ is added.  When all the files have been read, phase 1 is completed:
       <font color=blue>/* Error check each line */</font>
 
       if (is->NF < 4 || strcmp(is->fields[is->NF-2], "F") != 0 ||
-          sscanf(is->fields[is->NF-1], "%d", &tmp) != 1 ||
-          sscanf(is->fields[is->NF-3], "%d", &tmp) != 1) {
+          sscanf(is->fields[is->NF-1], "%d", &tmp) != 1) {
         fprintf(stderr, "File %s, Line %d: Not the proper format\n",
           is->name, is->line);
         exit(1);
@@ -843,34 +841,45 @@ done below:
   }
 </pre>
 
-Try it out.  You'll see that Tiger Woods did the best in all four majors
-this year:
+Try it out.  Back when I first wrote this lecture in 1998, Mark O'Meara had the year
+of his life, beating out Tiger Woods for the best performance in the majors:
+
 <pre>
-UNIX> <font color=darkred><b>./golf 1999_Majors/*</b></font>
+UNIX> <font color=darkred><b>./golf 1998_Majors/* | head -n 10</b></font>
+Mark O'Meara                             :   4 tournaments :   -1.00
+    0 : 1998_Majors/British_Open
+   -9 : 1998_Majors/Masters
+   -4 : 1998_Majors/PGA_Champ
+    9 : 1998_Majors/US_Open
+Tiger Woods                              :   4 tournaments :    0.75
+    1 : 1998_Majors/British_Open
+   -3 : 1998_Majors/Masters
+   -1 : 1998_Majors/PGA_Champ
+    6 : 1998_Majors/US_Open
+UNIX> <font color=darkred><b></b></font>
+</pre>
+
+In 1999, Woods retook that crown in pretty dominant fashion:
+
+<pre>
+UNIX> <font color=darkred><b>./golf 1999_Majors/* | grep '^[A-Z]' | head -n 5</b></font>
 Tiger Woods                              :   4 tournaments :    0.25
-   10 : 1999_Majors/British_Open
-    1 : 1999_Majors/Masters
-  -11 : 1999_Majors/PGA_Champ
-    1 : 1999_Majors/US_Open
 Colin Montgomerie                        :   4 tournaments :    3.75
-   12 : 1999_Majors/British_Open
-   -1 : 1999_Majors/Masters
-   -6 : 1999_Majors/PGA_Champ
-   10 : 1999_Majors/US_Open
 Davis Love III                           :   4 tournaments :    4.50
-   10 : 1999_Majors/British_Open
-   -6 : 1999_Majors/Masters
-    5 : 1999_Majors/PGA_Champ
-    9 : 1999_Majors/US_Open
 Jim Furyk                                :   4 tournaments :    4.50
-   11 : 1999_Majors/British_Open
-    0 : 1999_Majors/Masters
-   -4 : 1999_Majors/PGA_Champ
-   11 : 1999_Majors/US_Open
 Nick Price                               :   4 tournaments :    4.75
-   17 : 1999_Majors/British_Open
-   -3 : 1999_Majors/Masters
-   -7 : 1999_Majors/PGA_Champ
-   12 : 1999_Majors/US_Open
-...
+UNIX> <font color=darkred><b></b></font>
+</pre>
+
+I got lazy with grabbing leaderboards over the years.  I'll do it someday.  Brooks Koepka
+had the best year last year, but not by much. 
+
+<pre>
+UNIX> <font color=darkred><b>./golf 2017_Majors/* | grep '^[A-Z]' | head -n 5</b></font>
+Brooks Koepka                            :   4 tournaments :   -5.25
+Hideki Matsuyama                         :   4 tournaments :   -5.00
+Matt Kuchar                              :   4 tournaments :   -5.00
+Rickie Fowler                            :   4 tournaments :   -4.00
+Jordan Spieth                            :   4 tournaments :   -2.50
+UNIX> <font color=darkred><b></b></font>
 </pre>
