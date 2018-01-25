@@ -871,15 +871,110 @@ Nick Price                               :   4 tournaments :    4.75
 UNIX> <font color=darkred><b></b></font>
 </pre>
 
-I got lazy with grabbing leaderboards over the years.  I'll do it someday.  Brooks Koepka
-had the best year last year, but not by much. 
+Just to prove that I have nothing better to do, here are the top three
+in every year since 1998.  
 
 <pre>
-UNIX> <font color=darkred><b>./golf 2017_Majors/* | grep '^[A-Z]' | head -n 5</b></font>
+UNIX> <font color=darkred><b>sh -c 'for i in *Majors ; do echo $i ; ./golf $i/* | grep "^[A-Z]" | head -n 3 ; echo "" ; done'</b></font>
+1998_Majors
+Mark O'Meara                             :   4 tournaments :   -1.00
+Tiger Woods                              :   4 tournaments :    0.75
+John Huston                              :   4 tournaments :    4.25
+
+1999_Majors
+Tiger Woods                              :   4 tournaments :    0.25
+Colin Montgomerie                        :   4 tournaments :    3.75
+Davis Love III                           :   4 tournaments :    4.50
+
+2000_Majors
+Tiger Woods                              :   4 tournaments :  -11.25
+Ernie Els                                :   4 tournaments :   -2.50
+Phil Mickelson                           :   4 tournaments :   -0.25
+
+2001_Majors
+David Duval                              :   4 tournaments :   -6.25
+Phil Mickelson                           :   4 tournaments :   -6.00
+Tiger Woods                              :   4 tournaments :   -3.75
+
+2002_Majors
+Tiger Woods                              :   4 tournaments :   -6.00
+Sergio Garcia                            :   4 tournaments :   -1.00
+Padraig Harrington                       :   4 tournaments :   -0.75
+
+2003_Majors
+Mike Weir                                :   4 tournaments :    1.00
+Ernie Els                                :   4 tournaments :    1.75
+Vijay Singh                              :   4 tournaments :    3.25
+
+2004_Majors
+Ernie Els                                :   4 tournaments :   -4.50
+K.J. Choi                                :   4 tournaments :    0.75
+Vijay Singh                              :   4 tournaments :    1.00
+
+2005_Majors
+Tiger Woods                              :   4 tournaments :   -6.50
+Retief Goosen                            :   4 tournaments :   -1.25
+Vijay Singh                              :   4 tournaments :   -1.25
+
+2006_Majors
+Phil Mickelson                           :   4 tournaments :   -3.00
+Geoff Ogilvy                             :   4 tournaments :   -2.25
+Jim Furyk                                :   4 tournaments :   -1.50
+
+2007_Majors
+Tiger Woods                              :   4 tournaments :   -0.25
+Justin Rose                              :   4 tournaments :    3.75
+Paul Casey                               :   4 tournaments :    6.75
+
+2008_Majors
+Padraig Harrington                       :   4 tournaments :    1.75
+Robert Karlsson                          :   4 tournaments :    5.25
+Phil Mickelson                           :   4 tournaments :    5.50
+
+2009_Majors
+Ross Fisher                              :   4 tournaments :    0.50
+Henrik Stenson                           :   4 tournaments :    0.75
+Lee Westwood                             :   4 tournaments :    1.00
+
+2010_Majors
+Phil Mickelson                           :   4 tournaments :   -4.50
+Tiger Woods                              :   4 tournaments :   -3.25
+Matt Kuchar                              :   4 tournaments :   -1.25
+
+2011_Majors
+Charl Schwartzel                         :   4 tournaments :   -3.50
+Sergio Garcia                            :   4 tournaments :   -1.00
+Steve Stricker                           :   4 tournaments :   -1.00
+
+2012_Majors
+Adam Scott                               :   4 tournaments :   -1.50
+Graeme McDowell                          :   4 tournaments :   -1.00
+Ian Poulter                              :   4 tournaments :    0.50
+
+2013_Majors
+Adam Scott                               :   4 tournaments :    0.50
+Jason Day                                :   4 tournaments :    0.50
+Henrik Stenson                           :   4 tournaments :    1.00
+
+2014_Majors
+Rickie Fowler                            :   4 tournaments :   -8.00
+Rory McIlroy                             :   4 tournaments :   -6.75
+Jim Furyk                                :   4 tournaments :   -5.25
+
+2015_Majors
+Jordan Spieth                            :   4 tournaments :  -13.50
+Jason Day                                :   4 tournaments :   -8.75
+Justin Rose                              :   4 tournaments :   -8.50
+
+2016_Majors
+Jason Day                                :   4 tournaments :   -2.25
+Jordan Spieth                            :   4 tournaments :    0.75
+Emiliano Grillo                          :   4 tournaments :    2.50
+
+2017_Majors
 Brooks Koepka                            :   4 tournaments :   -5.25
 Hideki Matsuyama                         :   4 tournaments :   -5.00
 Matt Kuchar                              :   4 tournaments :   -5.00
-Rickie Fowler                            :   4 tournaments :   -4.00
-Jordan Spieth                            :   4 tournaments :   -2.50
+
 UNIX> <font color=darkred><b></b></font>
 </pre>
