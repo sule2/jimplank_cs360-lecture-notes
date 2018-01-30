@@ -39,7 +39,7 @@ int main()
   c[sz] = '\0';
   printf("The read returns the following bytes: %s\n", c);
 
-  printf("now, we do lseek(%d, -6, SEEK_END).  It returns %ld\n",
+  printf("now, we do lseek(%d, -6, SEEK_END).  It returns %lld\n",
          fd, lseek(fd, -6, SEEK_END));
   printf("If we do read(%d, c, 10), we get the following bytes: ", fd);
 
