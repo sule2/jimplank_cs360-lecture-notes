@@ -9,7 +9,6 @@
 #include "fields.h"
 
 #define talloc(ty, sz) (ty *) malloc (sz * sizeof(ty))
-#define strdup(s) ((char *) strcpy(talloc(char, strlen(s)+1), s))
 
 static IS make_inputstruct(char *filename, char *key)
                          /* "f" for regular file or stdin if filename is NULL */
