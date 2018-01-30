@@ -6,6 +6,7 @@
    the program.  This signal terminates the program */
 
 #include <stdio.h>
+#include <unistd.h>
 
 int main()
 {
