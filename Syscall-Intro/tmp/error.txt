@@ -1,0 +1,1 @@
+cat: fred.txt: No such file or directory

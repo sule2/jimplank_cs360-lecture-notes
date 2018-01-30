@@ -11,3 +11,4 @@ Lecture notes and example programs for Dr. Plank's CS360 class at the University
 - [Lecture #5d: Doubly-Linked Lists](Dllists/README.md)
 - [Lecture #5e: Red-Black Trees](JRB/README.md)
 - [Lecture #6: Some basic terminology](Chap1/README.md)
+- [Lecture #7: Introduction to system calls](Syscall-Intro/README.md)
