@@ -1,0 +1,364 @@
+<title>CS360 Lecture notes -- Cat and its variants.  Buffering.</title>
+<body bgcolor=ffffff>
+<h1>CS360 Lecture notes -- Cat and its variants.  Buffering.</h1>
+
+<UL>
+<LI><a href=http://web.eecs.utk.edu/~plank>James S. Plank</a>
+<LI>Directory: <b>/home/plank/cs360/notes/Cat</b>
+<LI>Lecture notes:
+    <a href=http://web.eecs.utk.edu/~plank/plank/classes/cs360/360/notes/Cat/lecture.html>
+    <b>
+  http://web.eecs.utk.edu/~plank/plank/classes/cs360/360/notes/Cat/lecture.html
+</b></a>
+<LI> Original lecture notes -- I don't know -- 1995 maybe?
+<LI> Last modification:
+Thu Feb  1 10:55:35 EST 2018
+</UL>
+<hr>
+
+<font color=red>As machines and devices get faster, you need to make the file
+named <b>large.txt</b> bigger and bigger to make the programs in this lecture exhibit
+large running times.  In 2018, the file was roughly 25 MB.  
+If you are running the code from this directory, you may need to make <b>large.txt</b>
+bigger. Do this in the makefile.</font>
+<hr>
+
+
+This lecture gives more detail on  writing "cat" with unix system calls
+and with the C standard I/O library.  It also motivates buffering for
+performance.
+
+<h2>Simpcat</h2>
+Here are three equivalent ways of writing a simple
+   <b>cat</b> program, which just reads from standard input, and writes to standard
+   output.
+
+
+<p><center><table border=3 cellpadding=3><td valign=top>
+<b><a href=simpcat1.c>simpcat1.c</a></b>
+<hr>
+<pre>
+#include &lt;stdio.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;stdio.h&gt;     
+                       
+int main()                 
+{                      
+  char c;              
+                       
+  c = getchar();       
+  while(c != EOF) {    
+    putchar(c);        
+    c = getchar();     
+  }                    
+  return 0;
+}                      
+</pre></td>
+<td valign=top>
+<b><a href=simpcat2.c>simpcat2.c</a></b>
+<hr>
+<pre>
+#include &lt;unistd.h&gt; 
+
+
+                       
+int main()                 
+{                      
+  char c;           
+  int i;               
+                       
+  i = read(0, &c, 1);   
+  while(i &gt; 0) {       
+    write(1, &c, 1);    
+    i = read(0, &c, 1); 
+  }                    
+  return 0;
+}                      
+</pre></td>
+<td valign=top>
+<b><a href=simpcat3.c>simpcat3.c</a></b>
+<hr>
+<pre>
+#include &lt;stdio.h&gt;
+
+
+
+int main()
+{
+  char c[1];
+  int i;
+
+  i = fread(c, 1, 1, stdin);
+  while(i &gt; 0) {    
+    fwrite(c, 1, 1, stdout);
+    i = fread(c, 1, 1, stdin);
+  }
+  return 0;
+}
+</pre></td></table></center><p>
+
+<p>
+
+Let's look at these a little closer.  Copy <b>*.c</b> and <b>makefile</b> to one
+of your directories, and type "<b>make</b>".  (BTW, when you're done, you'll want 
+to type "<b>make clean</b>", because <b>large.txt</b> is 25MB, and you don't need 
+to waste space on it.)  Now do the following:
+<pre>
+UNIX> <font color=darkred><b>sh</b></font>
+sh-4.2$ <font color=darkred><b>time ./simpcat1 < large.txt > /dev/null</b></font>
+
+real  0m0.440s
+user  0m0.435s
+sys 0m0.003s
+sh-4.2$ <font color=darkred><b>time ./simpcat2 < large.txt > /dev/null</b></font>
+
+real  0m34.017s
+user  0m8.044s
+sys 0m25.967s
+sh-4.2$ <font color=darkred><b>time ./simpcat3 < large.txt > /dev/null</b></font>
+
+real  0m0.976s
+user  0m0.951s
+sys 0m0.009s
+sh-4.2$ <font color=darkred><b>exit</b></font>
+UNIX> <font color=darkred><b></b></font>
+</pre>
+
+Depending on what machine you're using, you may likely to get different
+times than the above -- those were on my Dell Linux box in 2018.
+Regardless of the numbers that you get, 
+the ratios between
+<b>simpcat1</b>, <b>simpcat2</b> and <b>simpcat3</b> should be roughly the same.
+<p>
+
+So, what's going on?  <b>/dev/null</b> is a special file in Unix that you
+can write to, but it never stores anything on disk.  We're using it
+so that you don't create 25M files in your home directory as this
+wastes disk space.  "<b>Large.txt</b>" is a 25,000,000-byte file.  This means that
+in <b>simpcat1.c</b>, <b>getchar()</b> and <b>putchar()</b> 
+are being called 25 million
+times each, as are <b>read()</b> and <b>write()</b> in <b>simpcat2.c</b>, and <b>fread()</b> and
+<b>fwrite()</b> in <b>simpcat3.c</b>.  Obviously, the culprit in <b>simpcat2.c</b> is the
+fact that the program is making system calls instead of library
+calls.  Remember that a system call is a request made to the
+operating system.  This means at each read/write call, the operating
+system has to take over the CPU (this means saving the state of the
+<b>simpcat2</b> program), process the request, and return (which means
+restoring the state of the <b>simpcat2</b> program).  This is evidently far more
+expensive than what <b>simpcat1.c</b> and <b>simpcat3.c</b> do.  Now, look at
+<a href=simpcat4.c><b>simpcat4.c</b></a> and 
+<a href=simpcat5.c><b>simpcat5.c</b></a>:
+
+<p><center><table border=3 cellpadding=3><td valign=top>
+<b><a href=simpcat4.c>simpcat4.c</a></b>
+<hr>
+<pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+
+int main(int argc, char **argv)
+{
+  int bufsize;
+  char *c;
+  int i;
+
+  bufsize = atoi(argv[1]);
+  c = (char *) malloc(bufsize*sizeof(char));
+  i = 1;
+  while (i &gt; 0) {
+    i = read(0, c, bufsize);
+    if (i &gt; 0) write(1, c, i);
+  }
+  return 0;
+}
+</pre></td>
+<td valign=top>
+<b><a href=simpcat5.c>simpcat5.c</a></b>
+<hr>
+<pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+
+int main(int argc, char **argv)
+{
+  int bufsize;
+  char *c;
+  int i;
+
+  bufsize = atoi(argv[1]);
+  c = (char *) malloc(bufsize*sizeof(char));
+  i = 1;
+  while (i &gt; 0) {
+    i = fread(c, 1, bufsize, stdin);
+    if (i &gt; 0) fwrite(c, 1, i, stdout);
+  }
+  return 0;
+}
+</pre></td></table></center><p>
+
+<p>
+These let us read in more than one byte at a time.  This is called
+<i>buffering</i>:  You allocate a region of memory in which to store things,
+so that you can make fewer system/procedure calls.  
+Note that <b>fread()</b> and <b>fwrite()</b>
+are just like <b>read()</b> and <b>write()</b>, 
+except that they go to the standard I/O
+library instead of the operating system.  
+<p>
+The graph below shows their relative speeds (this was in 2016 on my MacBook Pro,
+running on a roughly 8MB input file.  The numbers will be different when you run 
+this on the current version of <b>large.txt</b>, but the shape of the graph will 
+be the same):
+
+<p><center><table border=3><td><a href=Timing.jpg><img src=Timing.jpg width=400></a></td></table></center><p>
+
+<p>
+First, what can we infer now about the standard I/O library?  It uses 
+buffering!  In other words, when you first call <b>getchar()</b> or <b>fread()</b>,
+it performs a <b>read()</b> of a large number of bytes into a buffer.  Thus, 
+subsequent <b>getchar()</b> or <b>fread()</b> calls will be fast.  
+When you attempt
+to <b>fread()</b> large segments of memory, the two exhibit the same behavior,
+as <b>fread()</b> doesn't need to buffer -- it simply calls <b>read()</b>.
+<p>
+
+Why then is <b>getchar()</b> faster than <b>fread(c, 1, 1, stdin)</b>?  
+Because <b>getchar()</b> is optimized for reading one character, and 
+<b>fread()</b> is not.<p>  Think about it -- <b>fread()</b> needs to 
+read four arguments, and if it's executing code for small values of the 
+size, it at the very least needs to figure out that the size is small before
+executing the code.  <b>getchar()</b> has been written to be really fast for
+single characters.  
+
+<hr>
+<h2>What's the lesson behind this?</h2>
+
+<ul>
+<li>	1. Buffering is a good way to cut down on too many system calls.
+<li>	2. If you are reading small chunks of bytes, then use <b>getchar()</b>
+           or <b>fread()</b>.  They do buffering for you.
+<li>     3. If you are doing single character I/O, use <b>getchar()</b> 
+          (or <b>fgetc()</b>).
+<li>  4. If you are reading large chunks of bytes, then <b>fread()</b> and
+           <b>read()</b> work about the same.  However, you should use
+           <b>fread()</b>, since it makes your programming more consistent,
+           and because it does a little more error checking for you.
+</ul>
+The same is true for writes, even though we didn't go through them in 
+detail in class.
+<hr>
+<h2>Standard I/O vs System calls.</h2>
+
+Each system call has analogous procedure calls from the standard I/O library:
+<pre>
+System Call			Standard I/O call
+-----------			-----------------
+open				fopen
+close				fclose
+read/write			getchar/putchar
+				getc/putc
+				fgetc/fputc
+				fread/fwrite
+				gets/puts
+				fgets/fputs
+				scanf/printf
+				fscanf/fprintf
+lseek				fseek
+</pre>
+				
+System calls work with integer file descriptors.  Standard I/O calls
+define a structure called a <b>FILE</b>, and work with pointers to these
+structs.  <p>
+
+To exemplify, the following are versions of the program <b>cat</b> which 
+must be called with <b>filename</b> as their arguments.  
+<a href=cat1.c><b>Cat1.c</b></a>
+uses system calls, and 
+<a href=cat2.c><b>cat2.c</b></a>
+uses the standard I/O library.  Both use an 8K buffer for the 
+<b>read()/fread()</b> and <b>write()/fwrite()</b> calls.  Read the man page
+for <b>open</b> ("man 2v open") and <b>fopen</b> ("man 3s fopen") 
+to understand their 
+arguments.<p>
+
+Try:
+
+<pre>
+UNIX> <font color=darkred><b>sh -c "time ./cat1 large.txt > /dev/null"</b></font>
+
+real  0m0.012s
+user  0m0.001s
+sys 0m0.010s
+UNIX> <font color=darkred><b>sh -c "time ./cat2 large.txt > /dev/null"</b></font>
+
+real  0m0.015s
+user  0m0.003s
+sys 0m0.011s
+UNIX> <font color=darkred><b></b></font>
+</pre>
+
+How do these compare to the first numbers?<p>
+
+Finally, <a href=fullcat.c><b>fullcat.c</b></a>
+contains a version of <b>cat</b> which works much like the
+real version -- if you omit a filename, then it prints standard input to
+standard output.  Otherwise, it prints out each file specified in the 
+command line arguments.  Note how it is similar to both <b>simpcat1.c</b> and
+<b>cat2.c</b>.  <p>
+
+Type '<b>make clean</b>' when you're done to save disk space, and remove any
+temporary files.  
+
+<hr>
+<h2>Chars vs ints</h2>
+
+You'll note that <b>getchar()</b> is defined to return an <b>int</b> and
+not a <b>char</b>.  Relatedly, look at 
+<b><a href=simpcat1a.c>simpcat1a.c</a></b>:
+
+<p><center><table border=3 cellpadding=3><td><pre>
+#include &lt;stdio.h&gt;
+#include &lt;fcntl.h&gt;
+                       
+int main()                 
+{                      
+  int c;              
+                       
+  c = getchar();       
+  while(c != EOF) {    
+    putchar(c);        
+    c = getchar();     
+  }                    
+  return 0;
+}                      
+</pre></td></table></center><p>
+
+The only difference between <b>simpcat1a.c</b> and <b>simpcat1.c</b> is 
+that <b>c</b> is an <b>int</b> instead of a <b>char</b>.  Now, why 
+would that matter?  Look at the following:
+
+<pre>
+UNIX> <font color=darkred><b>ls -l simpcat1.c simpcat1</b></font>
+-rwxr-xr-x. 1 plank loci  9632 Feb  1 11:28 simpcat1
+-rw-r--r--. 1 plank guest  547 Feb  1 11:05 simpcat1.c
+UNIX> <font color=darkred><b>./simpcat1 < simpcat1 > tmp1</b></font>
+UNIX> <font color=darkred><b>./simpcat1 < simpcat1.c > tmp2</b></font>
+UNIX> <font color=darkred><b>ls -l tmp1 tmp2</b></font>
+-rw-r--r--. 1 plank loci 660 Feb  1 11:29 tmp1
+-rw-r--r--. 1 plank loci 547 Feb  1 11:29 tmp2
+UNIX> <font color=darkred><b></b></font>
+</pre>
+
+Notice anything wierd?  Now:
+
+<pre>
+UNIX> <font color=darkred><b>./simpcat1a < simpcat1 > tmp3</b></font>
+UNIX> <font color=darkred><b>ls -l tmp3</b></font>
+-rw-r--r--. 1 plank loci 9632 Feb  1 11:29 tmp3
+UNIX> <font color=darkred><b></b></font>
+</pre>
+
+This has to do with what happens when <b>getchar()</b> reads the character 255.
+We'll talk about it in class.  See if you can figure it out.  

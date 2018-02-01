@@ -22,6 +22,8 @@ int main(int argc, char **argv)
     exit(1);
   }
 
+  /* Figure out what the "flags" argument will be to the open() call. */
+
   if (strcmp(argv[1], "w") == 0) {
     flags = O_WRONLY;
   } else if (strcmp(argv[1], "wc") == 0) {

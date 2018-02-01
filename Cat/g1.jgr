@@ -1,0 +1,29 @@
+newgraph
+xaxis min 1 max 1048576 log log_base 16 size 3.5
+  hash_labels fontsize 20
+  no_auto_hash_labels
+  label fontsize 25 : Buffer Size (bytes)
+  hash_label at 1 : 1
+  hash_label at 16 : 16
+  hash_label at 256 : 256
+  hash_label at 4096 : 4K
+  hash_label at 65536 : 64K
+  hash_label at 1048576 : 1M
+yaxis min 0
+  hash_labels fontsize 20
+  label fontsize 25 : Time (seconds)
+legend defaults hjl vjt x 4096 y 150 fontsize 20
+
+newline linethickness 3 color 1 0 0
+  label : read()
+
+
+newline linethickness 3 color 0 0 1 
+  label : fread()
+  pts
+shell : awk '{ print $1, $4 }' < sc3-data.txt
+
+
+newline linethickness 3 color 1 0 0
+pts
+shell : awk '{ print $1, $4 }' < sc2-data.txt
