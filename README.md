@@ -13,3 +13,4 @@ Lecture notes and example programs for Dr. Plank's CS360 class at the University
 - [Lecture #6: Some basic terminology](Chap1/README.md)
 - [Lecture #7: Introduction to system calls](Syscall-Intro/README.md)
 - [Lecture #8: Cat and buffering](Cat/README.md)
+- [Lecture #9: Links](Links/README.md)

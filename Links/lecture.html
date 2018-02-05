@@ -1,0 +1,300 @@
+<title>CS360 Lecture notes -- Files, Links and Inodes</title>
+<body bgcolor=ffffff>
+<h1>CS360 Lecture notes -- Files, Links and Inodes</h1>
+
+<UL>
+<LI><a href=http://web.eecs.utk.edu/~plank>James S. Plank</a>
+<LI>Directory: <b>/home/plank/cs360/notes/Links</b>
+<LI>Lecture notes:
+    <a href=http://web.eecs.utk.edu/~plank/plank/classes/cs360/360/notes/Links/lecture.html>
+    <b>
+  http://web.eecs.utk.edu/~plank/plank/classes/cs360/360/notes/Links/lecture.html
+</b></a>
+<LI> Original lecture notes: Probably written in the mid 1990's.
+<LI> Most recent modification: February, 2018 
+</UL>
+
+<hr>
+
+<h1>Files</h1>
+
+Files store information on <i>secondary storage.</i>  This means that the information 
+should exist even when the computer that stored it is powered off.  This is as opposed
+to <i>primary storage</i>, which only works while a computer is powered up, and which 
+goes away forever when a computer is powered down.
+<p>
+When you create a file in Unix, there are quite a few things that happen.  In this lecture,
+we are going to focus on three components of a file in Unix:
+<p>
+<UL>
+<LI> The bytes of the file itself.
+<LI> The metadata of the file.
+<LI> The links to the file that are relative to a directory.
+</UL>
+
+Let's do a simple example:
+
+<pre>
+UNIX> <font color=darkred><b>echo "This is f1.txt" > f1.txt</b></font>
+UNIX> <font color=darkred><b>ls -lai</b></font>
+total 20
+497584377 drwxr-xr-x  2 plank guest   38 Feb  3 13:54 .
+430430681 drwxr-xr-x 51 plank guest 4096 Feb  3  2014 ..
+497584369 -rw-r--r--  1 plank loci    15 Feb  3 13:54 f1.txt
+497584451 -rw-r--r--  1 plank guest 9896 Feb  3 13:44 lecture.html
+UNIX>
+</pre>
+
+We created a file called <b>f1.txt</b>, and that places three things on disk:
+
+<UL>
+<LI> A directory entry for "f1.txt" in the current directory.  That associates the
+name "f1.txt" with an "inode" whose number is 497584369.  
+<p>
+<LI> An "Inode" with a number of 497584369.  This contains <i>metadata</i>, or information 
+about the file.  Typical metadata is the size, owner, links, protection mode, latest
+access and modification time, etc.  This is stored on disk in its own location -- the 
+operating system knows how to find it by its inode number.
+<p>
+<LI>
+The actual bytes, "This is f1.txt".  These are placed in a disk block, and the inode has
+information on how to find the disk block.  I won't go into
+much detail on this -- you'll get that in CS361.  
+In this example, the file is contained
+within one disk block, and the inode will know how to find it.  
+</UL>
+
+We can associate a picture with this example:
+<p><center><table border=3><td><img src=Link-1.jpg></td></table></center><p>
+
+You can see the inode for <b>f1.txt</b> (497584369), and how it points to 
+block <tt>0x4ab</tt>, which contains
+the bytes of the file (you don't have access to this information unless you are the
+operating system -- I just made up the number <tt>0x4ab</tt> for the sake of the example).  
+I have included the information in the directory, which is itself a
+file on disk, and the inode for that file.  See how everything links together?
+<p>
+Also, you will note that I haven't put a null character at the end of
+the string in the disk block.  That's because there is no null
+character -- that is only there when you are using a string inside a
+C program.  When you write it to disk, there is no null character.
+<p>
+When you give the <b>-i</b> flag to <b>ls</b>, it will tell you the inode number,
+as in the example above.
+<p>
+To use Unix lingo, 
+the way we name a file is by attaching a "<i>link</i>" to the inode.  
+Links are stored in "<i>directories</i>" -- each entry in a directory
+maps the name of the link to the inode number of the inode that
+points to the file.  Again, you can see that in the example above.<p>
+
+<p>
+We can have more than one link point to a file.  Suppose we are in a 
+fresh directory, and we have created the file <b>f1</b> to contain the bytes
+"This is f1\n".  Moreover, suppose that file has an inode number of 34778.
+And now we do the following:
+<pre>
+UNIX> <font color=darkred><b>ln f1 f2</b></font>
+</pre>
+This says to create another <i>link</i> to the file <b>f1</b>, and call it "<b>f2</b>".
+That link is really an entry in the directory that maps "f2" to inode 34778.
+What we have now are two pointers to the same metadata and the same bytes on disk.  
+When we do a listing:
+<pre>
+UNIX> <font color=darkred><b>ls -li f1 f2</b></font>
+34778  -rw-r--r--  2 plank          11 Sep 16 10:12 f1
+34778  -rw-r--r--  2 plank          11 Sep 16 10:12 f2
+UNIX> <font color=darkred><b>cat f1</b></font>
+This is f1
+UNIX> <font color=darkred><b>cat f2</b></font>
+This is f1
+UNIX> 
+</pre>
+
+We see that the files are exactly the same, except that the links
+have different names.  If we change either of these files -- for example,
+let's edit <b>f2</b> using <b>vi</b>, and change the word 
+"This" to "That", then the
+change is seen in both <b>f1</b> and <b>f2</b>, because they both point to the same bytes on 
+disk:
+<pre>
+UNIX> <font color=darkred><b>vi f2</b></font>
+...
+UNIX> <font color=darkred><b>cat f2</b></font>
+That is f1
+UNIX> <font color=darkred><b>cat f1</b></font>
+That is f1
+UNIX> <font color=darkred><b>ls -li f1 f2</b></font>
+34778  -rw-r--r--  2 plank          11 Sep 16 10:14 f1
+34778  -rw-r--r--  2 plank          11 Sep 16 10:14 f2
+UNIX>
+</pre>
+Note that even though we only modified <b>f2</b>, the file modification time
+for <b>f1</b> has changed as well.  That is because file modification time is 
+stored as part of the inode -- thus, when <b>f2</b> changes it, the change
+is seen in <b>f1</b> as well.  Same with file protection modes.  If we change
+the protection for <b>f1</b>, then we will see the changes in <b>f2</b>:
+
+<pre>
+UNIX> <font color=darkred><b>chmod 0400 f1</b></font>
+UNIX> <font color=darkred><b>ls -li f1 f2</b></font>
+34778  -r--------  2 plank          11 Sep 16 10:14 f1
+34778  -r--------  2 plank          11 Sep 16 10:14 f2
+UNIX> 
+</pre>
+
+Note the third column of the <b>ls</b> command.  It is the number of links
+to the file.  If we make another link to <b>f1</b>, then this column will be
+updated:
+
+<pre>
+UNIX> <font color=darkred><b>ln f1 f3</b></font>
+UNIX> <font color=darkred><b>ls -li f1 f2 f3</b></font>
+34778  -r--------  3 plank          11 Sep 16 10:14 f1
+34778  -r--------  3 plank          11 Sep 16 10:14 f2
+34778  -r--------  3 plank          11 Sep 16 10:14 f3
+</pre>
+
+When we use the "<b>rm</b>" command, we are actually removing links.  E.g.
+
+<pre>
+UNIX> <font color=darkred><b>chmod 0644 f1</b></font>
+UNIX> <font color=darkred><b>rm f1</b></font>
+UNIX> ls -li f*
+34778  -rw-r--r--  2 plank          11 Sep 16 10:14 f2
+34778  -rw-r--r--  2 plank          11 Sep 16 10:14 f3
+UNIX> 
+</pre>
+
+When the last link to a file is removed, then the file itself, inode
+and all, is deleted.  As long as there is a link pointing to a file, 
+however, the file remains.  It is interesting to see what happens
+when files with links are overwritten.  For example, suppose I 
+do the following:
+
+<pre>
+UNIX> <font color=darkred><b>cat > f2</b></font>
+This is now file f2
+^D
+UNIX> <font color=darkred><b>cat f2</b></font>
+This is now file f2
+UNIX> <font color=darkred><b>cat f3</b></font>
+This is now file f2
+</pre>
+
+By saying you want to redirect output to the file <b>f2</b>, you end up changing
+<b>f3</b>.  This means that when the shell performs output redirection, it 
+opens the file and truncates it, instead of removing the file and creating
+it anew.<p>
+
+Instead, suppose you do:
+
+<pre>
+UNIX> <font color=darkred><b>gcc -o f2 ls1.c</b></font>
+UNIX> <font color=darkred><b>ls -li f*</b></font>
+34779  -rwxr-xr-x  1 plank       24576 Sep 16 10:16 f2
+34778  -rw-r--r--  1 plank          20 Sep 16 10:16 f3
+UNIX> 
+</pre>
+
+You'll note that the c compiler <b>gcc</b> did a "<b>rm f2</b>" before 
+creating <b>f2</b> as an executable.<p>
+
+All directories have at least 2 links:
+
+<pre>
+UNIX> <font color=darkred><b>mkdir test</b></font>
+UNIX> <font color=darkred><b>ls -li | grep test</b></font>
+34800  drwxr-xr-x  2 plank         512 Sep 16 10:17 test
+UNIX> 
+</pre>
+
+This is because every directory contains two 
+subdirectories "<b>.</b>" and "<b>..</b>"
+The first is a link to itself, and the second is a link to the parent
+directory.  Thus, there are two links to the directory file "<b>test</b>":
+"<b>test</b>" and "<b>test/.</b>"  
+Similarly, suppose we make a subdirectory of <b>test</b>:
+
+<pre>
+UNIX> <font color=darkred><b>mkdir test/sub</b></font>
+UNIX> <font color=darkred><b>ls -li | grep test</b></font>
+34800  drwxr-xr-x  3 plank         512 Sep 16 10:17 test
+UNIX> 
+</pre>
+
+Now there are three links to "<b>test</b>":  "<b>test</b>", "<b>test/.</b>", 
+and "<b>test/sub/..</b>"<p>
+
+Besides these links which are automatically created for you, you cannot
+manually create links to directories.  Instead, there is a special kind of
+a link called a "<i>symbolic link</i>" (also called a "soft link"), 
+which you make using the command 
+"<b>ln -s</b>".
+For example, we can create a soft link to the test directory as follows:
+
+<pre>
+UNIX> <font color=darkred><b>ln -s test test-soft</b></font>
+UNIX> <font color=darkred><b>ls -li | grep test</b></font>
+34800  drwxr-xr-x  3 plank         512 Sep 16 10:17 test
+34801  lrwxrwxrwx  1 plank           4 Sep 16 10:18 test-soft -> test
+</pre>
+
+Note that soft links have a different kind of directory listing.  Moreover,
+note that the creation of a soft link to "<b>test</b>" doesn't update the link
+field of test's inode.  That only records regular, or "hard" links.<p>
+
+A soft link is a way of pointing to a file without changing the file's
+inode.  However, soft links can do pretty much everything that hard links
+can do:
+
+<pre>
+UNIX> <font color=darkred><b>cat > f1</b></font>
+This is f1
+UNIX> <font color=darkred><b>ln -s f1 f2</b></font>
+UNIX> <font color=darkred><b>cat f2</b></font>
+This is f1
+UNIX> <font color=darkred><b>cat > f2</b></font>
+This is f2
+UNIX> <font color=darkred><b>cat f1</b></font>
+This is f2
+UNIX> <font color=darkred><b>ls -l f*</b></font>
+-rw-r--r--  1 plank          11 Sep 16 10:19 f1
+lrwxrwxrwx  1 plank           2 Sep 16 10:18 f2 -> f1
+UNIX> <font color=darkred><b>chmod 0600 f2</b></font>
+UNIX> <font color=darkred><b>ls -l f*</b></font>
+-rw-------  1 plank          11 Sep 16 10:19 f1
+lrwxrwxrwx  1 plank           2 Sep 16 10:18 f2 -> f1
+UNIX> 
+</pre>
+
+What is the main difference between hard and soft links then?  Well,
+if the file to which the soft link points gets deleted or moved, then
+the link becomes unusable:
+
+<pre>
+UNIX> <font color=darkred><b>rm f1</b></font>
+UNIX> <font color=darkred><b>ls -l f*</b></font>
+lrwxrwxrwx  1 plank           2 Sep 16 10:18 f2 -> f1
+UNIX> <font color=darkred><b>cat f2</b></font>
+cat: f2: No such file or directory
+UNIX> 
+</pre>
+
+The link is called "unresolved."<p>
+<hr>
+
+In Unix, you cannot make hard links from a file in one filesystem to a 
+directory in another filesystem.  I.e., from your student accounts, you
+cannot do a command such as:
+<pre>
+UNIX> <font color=darkred><b>ln /home/plank/cs360/notes/Links/lecture.html ~/lecture.html</b></font>
+</pre>
+
+because your home directory is not on the same filesystem as mine.
+However, you can make a soft link:
+
+<pre>
+UNIX> <font color=darkred><b>ln -s /home/plank/cs360/notes/Links/lecture.html ~/lecture.html</b></font>
+</pre>
+
