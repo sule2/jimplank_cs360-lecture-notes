@@ -1,17 +1,23 @@
 Do these in the C Shell -- showing redirection:
 
 cat f1
+
 cat < f1
+
 < f1 cat
+
 < cat f1
+
 cat f1 > f2
 cat f2
+
 cat f1 >> f2
 cat f2
+
 > f2 < f1 cat
 cat f2
 
-Differentiating stdout / stderr:
+# Differentiating stdout / stderr:
 
 cat f1 f3
  
@@ -21,7 +27,7 @@ cat f2
 cat f1 f3 >& f2
 cat f2
  
-Now in the Bourne Shell:
+# Now in the Bourne Shell:
 
 cat f1 f3 1>f2
 cat f2
@@ -35,15 +41,18 @@ cat f1 f3 1>f2 1>f5
 cat f2
 cat f5
 
-Redirecting standard input multiple times:
+# Redirecting standard input multiple times:
 
 echo "This is f1" > f1
 echo "This is f2" > f2
+
 sh -c "cat < f1 < f2"
+
 sh -c "cat < f2 < f1"
+
 csh -c "cat < f1 < f2"
 
-Back to the Bourne shell -- not sure why:
+# Back to the Bourne shell -- not sure why:
 
 cat f2
 head f2 > f2
@@ -72,7 +81,8 @@ $badbadcode
 $badbadcode 3>f5
 $cat f5
 $badbadcode 3>&1
-$
+
+
 $dont_admit_i_taught_you_this > /dev/null 9>elog.txt
 $cat elog.txt
 $dont_admit_i_taught_you_this > /dev/null
