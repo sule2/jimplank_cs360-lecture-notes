@@ -15,3 +15,4 @@ Lecture notes and example programs for Dr. Plank's CS360 class at the University
 - [Lecture #8: Cat and buffering](Cat/README.md)
 - [Lecture #9: Links](Links/README.md)
 - [Lecture #10: Sh Redirection](Sh/README.md)
+- [Lecture #11: Stat and Opendir/Readdir/Closedir](Stat/README.md)

@@ -1,12 +1,12 @@
 # When I'm home, I use the following:
-CFLAGS = -g -I$(HOME)/include
-LIB = $(HOME)/lib/libfdr.a
+# CFLAGS = -g -I$(HOME)/include
+# LIB = $(HOME)/lib/libfdr.a
 
-# CFLAGS  =       -g -I/home/plank/cs360/include
-# LIB  = /home/plank/cs360/objs/libfdr.a
+CFLAGS  =       -g -I/home/plank/cs360/include
+LIB  = /home/plank/cs360/objs/libfdr.a
 
 CC = gcc
-EXECUTABLES = ls1 ls2 ls3 ls4 ls5 ls5a ls6 lec_soft
+EXECUTABLES = ls1 ls2 ls3 ls4 ls5 ls5a ls6 lec_soft myfile
 
 all: $(EXECUTABLES) 
 
@@ -41,3 +41,7 @@ ls6: ls6.o
 
 lec_soft: lecture.html
 	ln -s lecture.html lec_soft
+
+myfile:
+	echo "Hi" > myfile
+	chmod 0 myfile
