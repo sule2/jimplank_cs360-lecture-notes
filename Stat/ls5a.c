@@ -1,5 +1,5 @@
 /* ls5a.c
-   Jim Plank
+   James S. Plank
    CS360 -- Spring, 1994
 
    This is the same as ls5.c except the maximum length of the file size
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     if (exists < 0) {
       fprintf(stderr, "%s not found\n", de->d_name);
     } else {
-      sprintf(ssize, "%ld", buf.st_size);
+      sprintf(ssize, "%lld", buf.st_size);
       if (strlen(ssize) > maxsize) maxsize = strlen(ssize);
       jrb_insert_str(files, strdup(de->d_name), new_jval_s(strdup(ssize)));
     }
@@ -52,4 +52,5 @@ int main(int argc, char **argv)
   jrb_traverse(tmp, files) {
     printf("%*s %*s\n", -maxlen, tmp->key.s, maxsize, tmp->val.s);
   }
+  return 0;
 }

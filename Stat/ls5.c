@@ -1,5 +1,5 @@
 /* ls5.c
-   Jim Plank
+   James S. Plank
    CS360 -- Spring, 1994
 
    This is the same as ls4.c except the filenames are sorted.
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
   files = make_jrb();
 
   for (de = readdir(d); de != NULL; de = readdir(d)) {
-    jrb_insert_str(files, strdup(de->d_name), JNULL);
+    jrb_insert_str(files, strdup(de->d_name), new_jval_i(0));
     if (strlen(de->d_name) > maxlen) maxlen = strlen(de->d_name);
   }
   closedir(d);
@@ -43,7 +43,8 @@ int main(int argc, char **argv)
     if (exists < 0) {
       fprintf(stderr, "%s not found\n", tmp->key.s);
     } else {
-      printf("%*s %10ld\n", -maxlen, tmp->key.s, buf.st_size);
+      printf("%*s %10lld\n", -maxlen, tmp->key.s, buf.st_size);
     }
   }
+  return 0;
 }

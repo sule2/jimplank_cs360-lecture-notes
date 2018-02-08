@@ -1,7 +1,11 @@
-CC = gcc
-CFLAGS  =       -g -I/home/plank/cs360/include
-LIB  = /home/plank/cs360/objs/libfdr.a
+# When I'm home, I use the following:
+CFLAGS = -g -I$(HOME)/include
+LIB = $(HOME)/lib/libfdr.a
 
+# CFLAGS  =       -g -I/home/plank/cs360/include
+# LIB  = /home/plank/cs360/objs/libfdr.a
+
+CC = gcc
 EXECUTABLES = ls1 ls2 ls3 ls4 ls5 ls5a ls6 lec_soft
 
 all: $(EXECUTABLES) 

@@ -1,11 +1,10 @@
 /* ls3.c
-   Jim Plank
+   James S. Plank
    CS360 -- Spring, 1994
 
    This is a program which lists files and their sizes to standard output.
    The files are identified by using opendir/readdir/closedir.
 */
-  
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -31,8 +30,9 @@ int main(int argc, char **argv)
     if (exists < 0) {
       fprintf(stderr, "%s not found\n", de->d_name);
     } else {
-      printf("%s %ld\n", de->d_name, buf.st_size);
+      printf("%s %lld\n", de->d_name, buf.st_size);
     }
   }
   closedir(d);
+  return 0;
 }

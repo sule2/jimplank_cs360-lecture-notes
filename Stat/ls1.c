@@ -1,5 +1,5 @@
 /* ls1.c
-   Jim Plank
+   James S. Plank
    CS360
 
    This program lists each program on its command line together with
@@ -10,7 +10,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <unistd.h>
-
 
 int main(int argc, char **argv)
 {
@@ -24,9 +23,10 @@ int main(int argc, char **argv)
       printf("Couldn't open %s\n", argv[i]);
     } else {
       size = lseek(fd, (off_t) 0, SEEK_END);
-      printf("%10ld %s\n", size, argv[i]);
+      printf("%10lld %s\n", size, argv[i]);
       close(fd);
     }
   }
+  return 0;
 }
 

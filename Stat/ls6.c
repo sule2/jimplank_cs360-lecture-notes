@@ -1,5 +1,5 @@
 /* ls6.c
-   Jim Plank
+   James S. Plank
    CS360 -- Spring, 1994
 
    Ls6.c performs the same function as "ls -F".  That
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
   
   for (de = readdir(d); de != NULL; de = readdir(d)) {
     fn = strdup(de->d_name);
-    jrb_insert_str(r, fn, JNULL);
+    jrb_insert_str(r, fn, new_jval_i(0));
   }
   closedir(d);
 
@@ -52,4 +52,5 @@ int main(int argc, char **argv)
       printf("%s\n", tmp->key.s);
     }
   }
+  return 0;
 }

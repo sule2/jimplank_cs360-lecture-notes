@@ -1,5 +1,5 @@
 /* ls2.c
-   Jim Plank
+   James S. Plank
    CS360 -- Spring, 1994
 
    This is a program which lists files and their sizes to standard output.
@@ -12,7 +12,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-
 int main(int argc, char **argv)
 {
   int i;
@@ -24,9 +23,8 @@ int main(int argc, char **argv)
     if (exists < 0) {
       fprintf(stderr, "%s not found\n", argv[i]);
     } else {
-      printf("%10ld %s\n", buf.st_size, argv[i]);
+      printf("%10lld %s\n", buf.st_size, argv[i]);
     }
   }
+  return 0;
 }
-     
-

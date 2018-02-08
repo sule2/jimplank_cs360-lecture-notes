@@ -1,5 +1,5 @@
 /* ls4.c
-   Jim Plank
+   James S. Plank
    CS360 -- Spring, 1994
 
    This is the same as ls3.c except the input is formatted so that 
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     if (exists < 0) {
       fprintf(stderr, "%s not found\n", tmp->val.s);
     } else {
-      printf("%*s %10ld\n", -maxlen, tmp->val.s, buf.st_size);
+      printf("%*s %10lld\n", -maxlen, tmp->val.s, buf.st_size);
     }
   }
 }
