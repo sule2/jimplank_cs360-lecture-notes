@@ -338,6 +338,7 @@ UNIX>
 Let's use the <tt>limit</tt> command to set this number to ten instead 
 of 256.  Now, <b>prsize7</b> fails because of too many open files:
 
+<pre>
 UNIX> <font color=darkred><b>limit descriptors 10</b></font>
 UNIX> <font color=darkred><b>../prsize7</b></font>
 prsize: Too many open files
@@ -445,3 +446,109 @@ complaining that the directory broke the system backup program.  It also
 broke <b>tar</b>.  So, I changed the directory to its current structure.
 I like to think that the good folks who write system tools fixed <b>tar</b>
 because they stumbled upon my lecture notes.  A man can dream, can't he?
+
+<hr>
+Here's 
+<b><a href=prsize8.c>prsize8.c</a></b>, commented for your enjoyment.
+
+<p><center><table border=3 cellpadding=3><td><pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;dirent.h&gt;
+#include &lt;sys/stat.h&gt;
+#include "jrb.h"
+#include "dllist.h"
+
+<font color=blue>/* This procedure returns the number of bytes in files that are
+   reachable from fn.  It does not double-count hard links to
+   the same file, and it counts the size of soft links, not the 
+   files to which they point. */</font>
+
+int get_size(char *fn, JRB inodes)
+{
+  DIR *d;
+  struct dirent *de;
+  struct stat buf;
+  int exists;
+  int total_size;
+  char *s;
+  Dllist directories, tmp;
+
+  <font color=blue>/* Open the directory for reading. */</font>
+
+  d = opendir(fn);
+  if (d == NULL) {
+    perror("prsize");
+    exit(1);
+  }
+ 
+  <font color=blue>/* We use s to store file names that are of the form 
+     "directory/filename" -- the maximum length filename is
+     256 bytes, so this makes sure that the buffer s is 
+     big enough. */</font>
+
+  total_size = 0;
+  directories = new_dllist();
+  s = (char *) malloc(sizeof(char)*(strlen(fn)+258));
+
+  <font color=blue>/* Read each filename in the current directory.  
+     Construct s as "directory/filename" and call lstat to
+     get the inode information about the file. */</font>
+
+  for (de = readdir(d); de != NULL; de = readdir(d)) {
+    sprintf(s, "%s/%s", fn, de-&gt;d_name);
+    exists = lstat(s, &buf);
+    if (exists &lt; 0) {
+      fprintf(stderr, "Couldn't stat %s\n", s);
+      exit(1);
+
+    <font color=blue>/* Look up the inode in the inodes tree.  If it's there,
+       you ignore it, because you've seen it before.  Otherwise,
+       put it into the tree and process it. */</font>
+
+    } else {
+      if (jrb_find_int(inodes, buf.st_ino) == NULL) {
+        total_size += buf.st_size;
+        jrb_insert_int(inodes, buf.st_ino, new_jval_i(0));
+      }
+    }
+
+    <font color=blue>/* If the file is a directory, and not . or .., then append
+       it to the directories list so that you don't make recursive
+       calls while the directory is opened. */</font>
+
+    if (S_ISDIR(buf.st_mode) && strcmp(de-&gt;d_name, ".") != 0 && 
+        strcmp(de-&gt;d_name, "..") != 0) {
+      dll_append(directories, new_jval_s(strdup(s)));
+    }
+  }
+
+  <font color=blue>/* Close the directory, and then make recursive calls to all of
+     the directories.  You'll note, I free the directory name after
+     the recursive call returns.  I do this to avoid having a memory
+     leak due to the strdup() calls above. */</font>
+
+  closedir(d);
+  dll_traverse(tmp, directories) {
+     total_size += get_size(tmp-&gt;val.s, inodes);
+     free(tmp-&gt;val.s);
+  }
+   
+  <font color=blue>/* Perform final free() calls again to avoid memory leaks. */</font>
+
+  free_dllist(directories);
+  free(s);
+
+  return total_size;
+}
+
+int main()
+{
+  JRB inodes;
+
+  inodes = make_jrb();
+  printf("%d\n", get_size(".", inodes));
+  return 0;
+}
+</pre></td></table></center><p>
