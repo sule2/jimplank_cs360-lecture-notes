@@ -13,19 +13,54 @@
 Tue Feb 10 12:46:09 EST 2015
 </UL>
 <hr>
-If you are using your own computer to go through these lecture notes,
-do the following, so that you can set up the test directories (git
-is not good about things like links and file protections):
+To "follow along" with these lecture notes, if you are on the lab
+machines, simply do:
 
 <pre>
-UNIX> tar xpfv test-directories.tar
+UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
 </pre>
 
-Also change the makefile to find libfdr on your computer -- typically
-uncomment the commented lines for INCLUDE and LIB, and delete the lines
-that are set.
-<hr>
+If you are on your own machine, then follow these instructions:
+<p>
+Pull the repo, and cd to the <tt>Prsize</tt> directory.  You'll
+need to change the makefile so that it works on your machine.  Here's
+what my makefile looks like on my home machine:
 
+<pre>
+UNIX> <font color=darkred><b>head -n 4 makefile</b></font>
+CC = gcc
+
+CFLAGS  =       -g -I$(HOME)/include
+LIB = $(HOME)/lib/libfdr.a
+UNIX> <font color=darkred><b>make</b></font>
+gcc -g -I/home/plank/include -c prsize1.c
+gcc -g -I/home/plank/include -o prsize1 prsize1.o
+...
+UNIX> 
+</pre>
+
+Next, untar the test directories.  This is because bitbucket doesn't
+do a good job of preserving soft links and directory protections:
+<pre>
+UNIX> <font color=darkred><b>tar xpfv test-directories.tar</b></font>
+test1/
+test1/d1/
+test1/d1/f3
+test1/f1
+test1/f2
+test2/
+test2/f4-soft
+.....
+UNIX>
+</pre>
+
+Finally:
+
+<pre>
+UNIX> <font color=darkred><b>cd test1</font></b>
+</pre>
+
+Now, you're set up.
 
 <hr>
 This lecture covers the writing of a command <b>prsize</b>.  What
@@ -34,25 +69,24 @@ reachable from the current directory (excluding soft links).  It is a
 good program as it illustrates using <b>opendir/readdir/closedir</b>,
 <b>stat</b>, recursion, building path names, and finding hard links.<p>
 
-<hr>
+<p>
 First, I wrote 
 <a href=prsize1.c><b>prsize1.c</b></a>.
 This prints the total size of all files in
-the current directory.  It is a simple use of stat and 
-<b>opendir/readdir/closedir</b>.
-Test it out on the directory <b>test1</b>.  
-Go into a clean directory of your own,
-and do the following:
+the current directory.  It is a simple use of <tt>stat</tt> and 
+<tt>opendir/readdir/closedir</tt>.
+Test it out on your current directory (which is <tt>test1</tt>):
 
 <pre>
-UNIX> <font color=darkred><b>cp /home/plank/cs360/notes/Prsize/*.c .</b></font>
-UNIX> <font color=darkred><b>cp /home/plank/cs360/notes/Prsize/makefile .</b></font>
-UNIX> <font color=darkred><b>make</b></font>
-...
-UNIX> <font color=darkred><b>setenv PRDIR `pwd`</b></font>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
-UNIX> <font color=darkred><b>$PRDIR/prsize1 </b></font>
+UNIX> <font color=darkred><b>../prsize1 </b></font>
 2074
+</pre>
+
+You may get a different value (e.g. on my home machine, I got 12314), but
+if you do a long listing of all files, your value should equal the sum of
+all of the file sizes.  For example:
+
+<pre>
 UNIX> <font color=darkred><b>ls -la</b></font>
 drwxr-xr-x  3 plank         512 Sep 23 10:22 .
 drwxr-xr-x  7 plank        1024 Sep 23 10:37 ..
@@ -66,10 +100,7 @@ q
 UNIX>
 </pre>
 
-The "<b>setenv</b>" line sets it up so that you can call <b>prsize1</b>
-from any directory.  So, as you can see from the "<b>ls -l</b>"
-and the "<b>dc</b>", it sums up the size from all the files in the
-directory "<b>test1</b>".  Now, the next step we'd like to take is
+Now, the next step we'd like to take is
 to get the program to sum up the sizes of all files
 <i>reachable</i> from the current directory.  To do this, we
 need to make the program recursive.  Instead of putting all
@@ -78,13 +109,12 @@ into a function, and call that function.
 <a href=prsize2.c><b>Prsize2.c</b></a>
 does this.  It provides the same functionality as <b>prsize1.c</b>,
 except that it makes a call to <b>get_size()</b> to find the size.
-Note there is no recursion yet -- that is for prsize3.c.
+Note there is no recursion yet -- that is for <b>prsize3.c</b>.
 If you test <b>prsize2</b>, you'll see that it does the same thing
 as <b>prsize1</b>. 
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
-UNIX> <font color=darkred><b>$PRDIR/prsize2 </b></font>
+UNIX> <font color=darkred><b>../prsize2 </b></font>
 2074
 UNIX>
 </pre>
@@ -99,7 +129,7 @@ Try it out on the
 
 <pre>
 UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
-UNIX> <font color=darkred><b>$PRDIR/prsize3</b></font>
+UNIX> <font color=darkred><b>../prsize3</b></font>
 prsize: Too many open files
 UNIX>
 </pre>
@@ -110,7 +140,7 @@ to see when it's making the recursive calls:
 
 <pre>
 UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
-UNIX> <font color=darkred><b>$PRDIR/prsize3a</b></font>
+UNIX> <font color=darkred><b>../prsize3a</b></font>
 Making recursive call on directory .
 Making recursive call on directory .
 Making recursive call on directory .
@@ -132,7 +162,7 @@ puts in this code.  Now try it out:
 
 <pre>
 UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
-UNIX> <font color=darkred><b>$PRDIR/prsize4</b></font>
+UNIX> <font color=darkred><b>../prsize4</b></font>
 Couldn't stat f3
 prsize: No such file or directory
 UNIX>
@@ -154,7 +184,7 @@ makes this change.
 
 <pre>
 UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
-UNIX> <font color=darkred><b>$PRDIR/prsize5</b></font>
+UNIX> <font color=darkred><b>../prsize5</b></font>
 3115
 </pre>
 
@@ -196,7 +226,7 @@ drwxr-xr-x  2 plank         512 Sep 23 10:26 .
 drwxr-xr-x  7 plank        1024 Sep 23 10:37 ..
 -rw-r--r--  2 plank          11 Sep 23 10:22 f4
 -rw-r--r--  2 plank          11 Sep 23 10:22 f4-hard-link
-UNIX> <font color=darkred><b>$PRDIR/prsize5</b></font>
+UNIX> <font color=darkred><b>../prsize5</b></font>
 1558
 UNIX> <font color=darkred><b>dc</b></font>
 512 1024 + 11 + 11 + p
@@ -236,10 +266,10 @@ The code is in
 
 <pre>
 UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test2</b></font>
-UNIX> <font color=darkred><b>$PRDIR/prsize6</b></font>
+UNIX> <font color=darkred><b>../prsize6</b></font>
 1547
 UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
-UNIX> <font color=darkred><b>$PRDIR/prsize6</b></font>
+UNIX> <font color=darkred><b>../prsize6</b></font>
 2091
 </pre>
 
@@ -253,7 +283,7 @@ drwxr-xr-x  7 plank        1024 Sep 23 10:37 ..
 -rw-r--r--  1 plank          11 Sep 23 10:22 f5
 lrwxrwxrwx  1 plank           2 Sep 23 10:26 f5-soft-link -> f5
 lrwxrwxrwx  1 plank           1 Sep 23 10:24 soft-link-to-. -> .
-UNIX> <font color=darkred><b>$PRDIR/prsize6</b></font>
+UNIX> <font color=darkred><b>../prsize6</b></font>
 Couldn't stat ./soft-link-to-./soft-link-to-./soft-link-to-./soft-link-to.........
 </pre>
 
@@ -277,7 +307,7 @@ drwxr-xr-x  7 plank        1024 Sep 23 10:37 ..
 -rw-r--r--  1 plank          11 Sep 23 10:22 f5
 lrwxrwxrwx  1 plank           2 Sep 23 10:26 f5-soft-link -> f5
 lrwxrwxrwx  1 plank           1 Sep 23 10:24 soft-link-to-. -> .
-UNIX> <font color=darkred><b>$PRDIR/prsize7</b></font>
+UNIX> <font color=darkred><b>../prsize7</b></font>
 1550
 UNIX> <font color=darkred><b>dc</b></font>
 512 1024 + 11 + 2 + 1 + p
@@ -290,7 +320,7 @@ open file descriptors.  Try <b>prsize7</b> on the <b>test4</b> directory:
 
 <pre>
 UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test4</b></font>
-UNIX> <font color=darkred><b>$PRDIR/prsize7</b></font>
+UNIX> <font color=darkred><b>../prsize7</b></font>
 prsize: Too many open files
 UNIX>
 </pre>
@@ -301,7 +331,7 @@ call to <b>get_size</b> in
 
 <pre>
 UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test4</b></font>
-UNIX> <font color=darkred><b>$PRDIR/prsize7a</b></font>
+UNIX> <font color=darkred><b>../prsize7a</b></font>
 Testing .
 Testing ./1
 Testing ./1/2
@@ -345,10 +375,10 @@ The correct and final version of prsize is in
 
 <pre>
 UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test4</b></font>
-UNIX> <font color=darkred><b>$PRDIR/prsize8</b></font>
+UNIX> <font color=darkred><b>../prsize8</b></font>
 33792
 UNIX> <font color=darkred><b>cd test5</b></font>
-$PRDIR/prsize8
+../prsize8
 2656
 UNIX>
 </pre>

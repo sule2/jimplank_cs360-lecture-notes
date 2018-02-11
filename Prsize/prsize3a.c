@@ -19,7 +19,7 @@ int get_size(char *fn)
 
   d = opendir(fn);
   if (d == NULL) {
-    perror("prsize");
+    perror(fn);
     exit(1);
   }
  
@@ -29,6 +29,7 @@ int get_size(char *fn)
     exists = stat(de->d_name, &buf);
     if (exists < 0) {
       fprintf(stderr, "Couldn't stat %s\n", de->d_name);
+      exit(1);
     } else {
       total_size += buf.st_size;
     }
