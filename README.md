@@ -16,3 +16,4 @@ Lecture notes and example programs for Dr. Plank's CS360 class at the University
 - [Lecture #9: Links](Links/README.md)
 - [Lecture #10: Sh Redirection](Sh/README.md)
 - [Lecture #11: Stat and Opendir/Readdir/Closedir](Stat/README.md)
+- [Lecture #12: Prsize: Recursive directory traversal](Prsize/README.md)

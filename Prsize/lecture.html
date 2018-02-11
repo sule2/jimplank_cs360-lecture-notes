@@ -1,16 +1,16 @@
 <title>CS360 Lecture notes -- Prsize: recursive directory traversal</title>
-<body bgcolor=ffffff>
 <h1>CS360 Lecture notes -- Prsize: recursive directory traversal</h1>
 <UL>
-<LI><a href=http://www.cs.utk.edu/~plank>Jim Plank</a>
+<LI><a href=http://www.cs.utk.edu/~plank>James S. Plank</a>
 <LI>Directory: <b>/home/plank/cs360/notes/Prsize</b>
 <LI>Lecture notes:
-    <a href=http://www.cs.utk.edu/~plank/plank/classes/cs360/360/notes/Prsize/lecture.html>
+    <a href=http://web.eecs.utk.edu/~plank/plank/classes/cs360/360/notes/Prsize/lecture.html>
     <b>
-  http://www.cs.utk.edu/~plank/plank/classes/cs360/360/notes/Prsize/lecture.html
+  http://web.eecs.utk.edu/~plank/plank/classes/cs360/360/notes/Prsize/lecture.html
 </b></a>
+<LI> Original lecture notes: Mid 1990's.
 <LI> Latest revision:
-Tue Feb 10 12:46:09 EST 2015
+Sun Feb 11 14:59:13 EST 2018
 </UL>
 <hr>
 To "follow along" with these lecture notes, if you are on the lab
@@ -79,7 +79,7 @@ Test it out on your current directory (which is <tt>test1</tt>):
 
 <pre>
 UNIX> <font color=darkred><b>../prsize1 </b></font>
-2074
+4170
 </pre>
 
 You may get a different value (e.g. on my home machine, I got 12314), but
@@ -88,16 +88,15 @@ all of the file sizes.  For example:
 
 <pre>
 UNIX> <font color=darkred><b>ls -la</b></font>
-drwxr-xr-x  3 plank         512 Sep 23 10:22 .
-drwxr-xr-x  7 plank        1024 Sep 23 10:37 ..
-drwxr-xr-x  2 plank         512 Sep 23 10:22 d1
--rw-r--r--  1 plank          11 Sep 23 10:22 f1
--rw-r--r--  1 plank          15 Sep 23 10:22 f2
-UNIX> <font color=darkred><b>dc</b></font>
-512 1024 + 512 + 11 + 15 + p
-2074
-q
-UNIX>
+total 12
+drwxr-xr-x. 3 plank guest   33 Feb 11 14:00 .
+drwxr-xr-x. 7 plank guest 4096 Feb 11 14:00 ..
+drwxr-xr-x. 2 plank guest   15 Sep 23  1994 d1
+-rw-r--r--. 1 plank guest   11 Sep 23  1994 f1
+-rw-r--r--. 1 plank guest   15 Sep 23  1994 f2
+UNIX> <font color=darkred><b>echo "33 4096 + 15 + 11 + 15 + p" | dc</b></font>
+4170
+UNIX> <font color=darkred><b></b></font>
 </pre>
 
 Now, the next step we'd like to take is
@@ -115,7 +114,7 @@ as <b>prsize1</b>.
 
 <pre>
 UNIX> <font color=darkred><b>../prsize2 </b></font>
-2074
+4170
 UNIX>
 </pre>
 
@@ -124,11 +123,9 @@ directory, we want to find out the size of everything in that
 directory, so we will call <b>get_size()</b> recursively on that directory.
 This is done in 
 <a href=prsize3.c><b>prsize3.c</b></a>.
-Try it out on the
-<b>/home/plank/cs360/notes/Prsize/test1</b> directory: 
+Try it out:
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
 UNIX> <font color=darkred><b>../prsize3</b></font>
 prsize: Too many open files
 UNIX>
@@ -139,7 +136,6 @@ So, what's happening?  Well, to check, I put a print statement into
 to see when it's making the recursive calls:
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
 UNIX> <font color=darkred><b>../prsize3a</b></font>
 Making recursive call on directory .
 Making recursive call on directory .
@@ -161,16 +157,14 @@ directory.  You need to check for ".." as well.
 puts in this code.  Now try it out:
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
 UNIX> <font color=darkred><b>../prsize4</b></font>
 Couldn't stat f3
-prsize: No such file or directory
 UNIX>
 </pre>
 
 Ok, now what's the problem?  Well, the program is
 trying to stat <b>f3</b> in the directory <b>d1</b>, but it's not
-working in the directory <b>d1</b>.  In other words, <b>prsize3</b>
+working in the directory <b>d1</b>.  In other words, <b>prsize4</b>
 is called from the directory
 <b>/home/plank/cs360/notes/Prsize/test1</b>, and
 makes the call "<b>exists = stat("f3", &buf)</b>".  Of course
@@ -183,34 +177,30 @@ and not just <b>de->d_name</b>.
 makes this change.  
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
 UNIX> <font color=darkred><b>../prsize5</b></font>
-3115
+4170
 </pre>
 
 So, this looks ok, except there's still something wrong:
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
 UNIX> <font color=darkred><b>ls -la</b></font>
-total 5
-drwxr-xr-x  3 plank         512 Sep 23 10:22 .
-drwxr-xr-x  7 plank        1024 Sep 23 10:37 ..
-drwxr-xr-x  2 plank         512 Sep 23 10:22 d1
--rw-r--r--  1 plank          11 Sep 23 10:22 f1
--rw-r--r--  1 plank          15 Sep 23 10:22 f2
+total 12
+drwxr-xr-x. 3 plank guest   33 Feb 11 14:00 .
+drwxr-xr-x. 7 plank guest 4096 Feb 11 14:00 ..
+drwxr-xr-x. 2 plank guest   15 Sep 23  1994 d1
+-rw-r--r--. 1 plank guest   11 Sep 23  1994 f1
+-rw-r--r--. 1 plank guest   15 Sep 23  1994 f2
+UNIX> <font color=darkred><b>echo "33 4096 + 15 + 11 + 15 + p" | dc</b></font>
+4170
 UNIX> <font color=darkred><b>ls -la d1</b></font>
-total 3
-drwxr-xr-x  2 plank         512 Sep 23 10:22 .
-drwxr-xr-x  3 plank         512 Sep 23 10:22 ..
--rw-r--r--  1 plank          17 Sep 23 10:22 f3
-UNIX> <font color=darkred><b>dc</b></font>
-512 1024 + 512 + 11 + 15 + 17 + p
-2091
-512 1024 + 512 + 11 + 15 + 512 + 512 + 17 + p
-3115
-q
-UNIX>
+total 4
+drwxr-xr-x. 2 plank guest 15 Sep 23  1994 .
+drwxr-xr-x. 3 plank guest 33 Feb 11 14:00 ..
+-rw-r--r--. 1 plank guest 17 Sep 23  1994 f3
+UNIX> <font color=darkred><b>echo "4170 15 + 33 + 17 + p" | dc</b></font>
+4235
+UNIX> <font color=darkred><b></b></font>
 </pre>
 
 As you can see, <b>prsize5</b> is counting <b>d1</b> and <b>d1/.</b> as
@@ -220,23 +210,24 @@ for <b>.</b> and <b>d1/..</b> <p>
 This is a drag.  To be clearer, look in <b>test2</b>:
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test2</b></font>
-UNIX> <font color=darkred><b>ls -la</b></font>
-drwxr-xr-x  2 plank         512 Sep 23 10:26 .
-drwxr-xr-x  7 plank        1024 Sep 23 10:37 ..
--rw-r--r--  2 plank          11 Sep 23 10:22 f4
--rw-r--r--  2 plank          11 Sep 23 10:22 f4-hard-link
+UNIX> <font color=darkred><b>cd ../test2</b></font>
 UNIX> <font color=darkred><b>../prsize5</b></font>
-1558
-UNIX> <font color=darkred><b>dc</b></font>
-512 1024 + 11 + 11 + p
-1558
-q
-UNIX>
+4152
+UNIX> <font color=darkred><b>ls -lai</b></font>
+total 12
+486036031 drwxr-xr-x. 2 plank guest   34 Feb 11 14:15 .
+962309197 drwxr-xr-x. 7 plank guest 4096 Feb 11 14:00 ..
+486036512 -rw-r--r--. 2 plank guest   11 Sep 23  1994 f4
+486036512 -rw-r--r--. 2 plank guest   11 Sep 23  1994 f4-hard-link
+UNIX> <font color=darkred><b>echo "34 4096 + 11 + 11 + p" | dc</b></font>
+4152
+UNIX> <font color=darkred><b></b></font>
 </pre>
 
+
 The files <b>f4</b> and <b>f4-hard-link</b> are links to the same
-file.  However, <b>prsize5</b> counts them as being
+file, so we really shouldn't count them twice.  
+However, <b>prsize5</b> counts them as being
 different.  So, what we need is for <b>prsize</b> to be able
 to recognize hard links, and only count them once.<p>
 
@@ -253,38 +244,42 @@ the rb-tree.
 As inodes are ints, we can use
 <b>jrb_insert_int</b> and <b>jrb_find_int</b> to access and modify the
 red-black tree.  
-<font color=darkred>(Caveat for 2015 -- inodes are now longs on some systems,
-so using jrb_find_int()</b> is not the right thing any more.  However, I'm not going to
+<font color=darkred>(Caveat starting in 2015 -- inode numbers are now longs on some systems,
+so using jrb_find_int()</b> is not technically the right thing to use any more.  However, I'm not going to
 change the notes because it won't matter functionally unless you have two inodes whose
 lower 32 bits are identical.  I'm tempted to <b>memcpy()</b> the inode into a double and
 use <b>jrb_find_dbl()</b> -- I'll probably do that when I teach it, even though it's kind 
-of disgusting.  What I need to do is add <b>_long()</b> to the JRB library, or just give up
-entirely and let you use C++).</font>
+of disgusting.  What I need to do is add <b>_long()</b> to the JRB library, but
+I don't see myself doing that any time soon.)</font>
 <p>
 The code is in 
 <a href=prsize6.c><b>prsize6.c</b></a>.
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test2</b></font>
 UNIX> <font color=darkred><b>../prsize6</b></font>
-1547
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test1</b></font>
+4141                    <font color=blue>This is 11 less than before, so it's correct.</font>
+UNIX> <font color=darkred><b>cd ../test1</b></font>
 UNIX> <font color=darkred><b>../prsize6</b></font>
-2091
+4187                    <font color=blue>This is 48 less than before, so it's correct as it's not double-counting . and d1.</font>
+UNIX>
 </pre>
+
 
 Now, soft links present a small problem.  Look at the <b>test3</b> directory.
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test3</b></font>
+UNIX> <font color=darkred><b>cd ../test3</b></font>
 UNIX> <font color=darkred><b>ls -la</b></font>
-drwxr-xr-x  2 plank         512 Sep 23 10:26 .
-drwxr-xr-x  7 plank        1024 Sep 23 10:37 ..
--rw-r--r--  1 plank          11 Sep 23 10:22 f5
-lrwxrwxrwx  1 plank           2 Sep 23 10:26 f5-soft-link -> f5
-lrwxrwxrwx  1 plank           1 Sep 23 10:24 soft-link-to-. -> .
+total 8
+drwxr-xr-x. 2 plank guest   55 Sep 24  1996 .
+drwxr-xr-x. 7 plank guest 4096 Feb 11 14:00 ..
+-rw-r--r--. 1 plank guest   11 Sep 23  1994 f5
+lrwxrwxrwx. 1 plank loci     2 Aug  1  2014 f5-soft-link -> f5
+lrwxrwxrwx. 1 plank loci     1 Aug  1  2014 soft-link-to-. -> .
 UNIX> <font color=darkred><b>../prsize6</b></font>
-Couldn't stat ./soft-link-to-./soft-link-to-./soft-link-to-./soft-link-to.........
+Couldn't stat ./soft-link-to-./soft-link-to-./soft-link-to-./soft-link-to-.........
+prsize: Too many levels of symbolic links
+UNIX> <font color=darkred><b></b></font>
 </pre>
 
 So, what has happened?  Since we're using <b>stat()</b>,
@@ -300,62 +295,63 @@ information about the soft link itself, instead of the
 file to which the link points: 
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test3</b></font>
-UNIX> <font color=darkred><b>ls -la</b></font>
-drwxr-xr-x  2 plank         512 Sep 23 10:26 .
-drwxr-xr-x  7 plank        1024 Sep 23 10:37 ..
--rw-r--r--  1 plank          11 Sep 23 10:22 f5
-lrwxrwxrwx  1 plank           2 Sep 23 10:26 f5-soft-link -> f5
-lrwxrwxrwx  1 plank           1 Sep 23 10:24 soft-link-to-. -> .
 UNIX> <font color=darkred><b>../prsize7</b></font>
-1550
-UNIX> <font color=darkred><b>dc</b></font>
-512 1024 + 11 + 2 + 1 + p
-1550
+4165
+UNIX> <font color=darkred><b>echo "55 4096 + 11 + 2 + 1 + p" | dc</b></font>
+4165
 UNIX> <font color=darkred><b></b></font>
 </pre>
 
-Finally, there's one more bug in this program.  It has to do with
-open file descriptors.  Try <b>prsize7</b> on the <b>test4</b> directory:
+Finally, there's one more bug in this program, and it's really subtle.  
+It has to do with open file descriptors.  First, go to the directory 
+<b>test4</b>.  Below, I use the <tt>find</tt> command to show that it is
+composed of 10 nested directories.  You can see that <b>prsize7</b> works
+just fine on it:
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test4</b></font>
+UNIX> <font color=darkred><b>cd ../test4</b></font>
+UNIX> <font color=darkred><b>find . -print</b></font>
+.
+./1
+./1/2
+./1/2/3
+./1/2/3/4
+./1/2/3/4/5
+./1/2/3/4/5/6
+./1/2/3/4/5/6/7
+./1/2/3/4/5/6/7/8
+./1/2/3/4/5/6/7/8/9
 UNIX> <font color=darkred><b>../prsize7</b></font>
-prsize: Too many open files
+4228
 UNIX>
 </pre>
 
-What's going on?  To figure it out, I put in a print statement at each
-call to <b>get_size</b> in 
-<a href=prsize7a.c><b>prsize7a.c</b></a>.
+The reason that it works is that our defaults typically allow for 256 open
+files per process:
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test4</b></font>
-UNIX> <font color=darkred><b>../prsize7a</b></font>
-Testing .
-Testing ./1
-Testing ./1/2
-Testing ./1/2/3
-Testing ./1/2/3/4
-Testing ./1/2/3/4/5
-...
-prsize: Too many open files
+UNIX> <font color=darkred><b>limit | grep descriptors</b></font>
+descriptors  256 
 UNIX>
+</pre>
+
+Let's use the <tt>limit</tt> command to set this number to ten instead 
+of 256.  Now, <b>prsize7</b> fails because of too many open files:
+
+UNIX> <font color=darkred><b>limit descriptors 10</b></font>
+UNIX> <font color=darkred><b>../prsize7</b></font>
+prsize: Too many open files
+UNIX> <font color=darkred><b></b></font>
 </pre>
 
 What's happening is that the recursive calls to
 <b>get_size()</b> are made in between the <b>opendir()</b> and
 <b>closedir()</b> calls.  That means that each time we make a
 recursive call, we add one to the number of open
-files.  As Unix only allows a finite number of open
-files to be held by any one process, we get an error
-if we make too many nested recursive calls.  (To see how
-many open files you may have, type "limit" into your shell
-and look at "descriptors").  
-<p>
-<font color=darkred>(If you try to do this on our machines, this part of the lecture won't
-work unless you limit your descriptors to 10 or so -- I had to delete a bunch of those directories
-because this directory was breaking our system archivers!)</font>
+files.  With only ten open files (and three open to start the process),
+we run out of file descriptors when we try to open
+<tt>"./1/2/3/4/5/6/7"</tt>.
+
 <p>
 The
 solution to this is to make sure that there are no
@@ -374,11 +370,78 @@ The correct and final version of prsize is in
 <a href=prsize8.c><b>prsize8.c</b></a>.
 
 <pre>
-UNIX> <font color=darkred><b>cd /home/plank/cs360/notes/Prsize/test4</b></font>
 UNIX> <font color=darkred><b>../prsize8</b></font>
-33792
-UNIX> <font color=darkred><b>cd test5</b></font>
-../prsize8
-2656
-UNIX>
+4228
+UNIX> <font color=darkred><b>cd ../test5</b></font>
+UNIX> <font color=darkred><b>ls -la</b></font>
+total 4
+drwxr-xr-x. 5 plank guest   33 Sep 24  1996 .
+drwxr-xr-x. 7 plank guest 4096 Feb 11 14:00 ..
+drwxr-xr-x. 2 plank guest   15 Sep 23  1994 d1
+drwxr-xr-x. 2 plank guest   15 Sep 23  1994 d2
+drwxr-xr-x. 2 plank guest   15 Sep 23  1994 d3
+UNIX> <font color=darkred><b>ls -la d1 d2 d3</b></font>
+d1:
+total 4
+drwxr-xr-x. 2 plank guest 15 Sep 23  1994 .
+drwxr-xr-x. 5 plank guest 33 Sep 24  1996 ..
+-rw-r--r--. 1 plank guest 14 Sep 23  1994 f1
+
+d2:
+total 4
+drwxr-xr-x. 2 plank guest 15 Sep 23  1994 .
+drwxr-xr-x. 5 plank guest 33 Sep 24  1996 ..
+-rw-r--r--. 1 plank guest 40 Sep 23  1994 f2
+
+d3:
+total 4
+drwxr-xr-x. 2 plank guest 15 Sep 23  1994 .
+drwxr-xr-x. 5 plank guest 33 Sep 24  1996 ..
+-rw-r--r--. 1 plank guest 42 Sep 23  1994 f3
+UNIX> <font color=darkred><b>echo "33 4096 + 15 + 15 + 15 + 14 + 40 + 42 + p" | dc</b></font>
+4270
+UNIX> <font color=darkred><b>../prsize8</b></font>
+4270
+UNIX> <font color=darkred><b></b></font>
 </pre>
+UNIX> 
+
+As an aside, <b>find</b> has the same bug as <b>prsize7.c</b>:
+
+<pre>
+UNIX> <font color=darkred><b>limit | grep descriptors</b></font>
+descriptors  10 
+UNIX> <font color=darkred><b>find . -print</b></font>
+.
+./1
+./1/2
+./1/2/3
+./1/2/3/4
+find: './1/2/3/4': Too many open files
+UNIX> 
+</pre>
+
+On the flip side, <b>tar</b> handles it correctly:
+
+<pre>
+UNIX> <font color=darkred><b>tar cvf ~/junk.tar .</b></font>
+./
+./1/
+./1/2/
+./1/2/3/
+./1/2/3/4/
+./1/2/3/4/5/
+./1/2/3/4/5/6/
+./1/2/3/4/5/6/7/
+./1/2/3/4/5/6/7/8/
+./1/2/3/4/5/6/7/8/9/
+UNIX> 
+</pre>
+
+When I first wrote this lecture, in the mid 1990's, I had <b>test4</b> have
+257 subdirectories, rather than 10.  That way, I didn't have mess with the 
+<b>limit</b> command.  Within a day, I had an email from our system administrator,
+complaining that the directory broke the system backup program.  It also
+broke <b>tar</b>.  So, I changed the directory to its current structure.
+I like to think that the good folks who write system tools fixed <b>tar</b>
+because they stumbled upon my lecture notes.  A man can dream, can't he?
