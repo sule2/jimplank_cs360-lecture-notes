@@ -1,6 +1,10 @@
 CC = gcc
-CFLAGS  =       -g -I/home/plank/cs360/include
-LIB = /home/plank/cs360/objs/libfdr.a
+
+CFLAGS  =       -g -I$(HOME)/include
+LIB = $(HOME)/lib/libfdr.a
+
+# CFLAGS  =       -g -I/home/plank/cs360/include
+# LIB = /home/plank/cs360/objs/libfdr.a
 
 
 EXECUTABLES = prsize1 prsize2 prsize3 prsize3a prsize4 prsize5 prsize6 prsize7 prsize7a prsize8
