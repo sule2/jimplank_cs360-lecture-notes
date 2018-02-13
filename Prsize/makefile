@@ -1,7 +1,8 @@
 CC = gcc
 
-CFLAGS  =       -g -I$(HOME)/include
-LIB = $(HOME)/lib/libfdr.a
+# When I'm at home, I uncomment these and comment the other CFLAGS/LIB defintions.
+# CFLAGS  =       -g -I$(HOME)/include
+# LIB = $(HOME)/lib/libfdr.a
 
 CFLAGS  =       -g -I/home/plank/cs360/include
 LIB = /home/plank/cs360/objs/libfdr.a
