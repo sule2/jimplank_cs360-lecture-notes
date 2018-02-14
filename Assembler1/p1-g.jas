@@ -1,0 +1,14 @@
+/ The first program -- adding i and j in global variables.
+
+    .globl i
+    .globl j
+main:
+    mov #1 -> %r0              / i = 1
+    st  %r0 -> i
+    mov #2  -> %r0             / j = 2
+    st  %r0 -> j
+    ld  i   -> %r0             / j = i + j
+    ld  j   -> %r1
+    add %r0,%r1  -> %r1
+    st  %r1 -> j
+    ret
