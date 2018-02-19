@@ -1,0 +1,43 @@
+a:
+    push #4              / Allocate k
+    st %r2 -> [sp]--     / Spill r2
+
+    ld [fp+12] -> %r0
+    mov #2 -> %r1
+    add %r0, %r1 -> %r0  / Calculate (i+2) and put the result in r0
+
+    ld [fp+16] -> %r1
+    mov #5 -> %r2
+    sub %r1, %r2 -> %r1  / Calculate (j-5) and put the result in r1
+
+    mul %r0, %r1 -> %r0
+    st %r0 -> [fp]       / Do k = r0 * r1
+
+    ld [fp] -> %r0
+    ld ++[sp] -> %r2     / Unspill r2
+    ret
+
+main:
+
+    push #4              / Allocate i
+    st %r2 -> [sp]--     / Spill r2
+ 
+    mov #20 -> %r0       / Call a(10, 20) and store the result in r2
+    st %r0 -> [sp]--
+    mov #10 -> %r0
+    st %r0 -> [sp]--
+    jsr a
+    pop #8
+    mov %r0 -> %r2       
+
+    mov #40 -> %r0       / Call a(30, 40) and add the result to r2
+    st %r0 -> [sp]--
+    mov #30 -> %r0
+    st %r0 -> [sp]--
+    jsr a
+    pop #8
+    add %r0, %r2 -> %r0
+    st %r0 -> [fp]
+   
+    ld ++[sp] -> %r2     / Unspill r2
+    ret

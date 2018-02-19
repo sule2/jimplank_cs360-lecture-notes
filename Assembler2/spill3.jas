@@ -1,0 +1,127 @@
+a:
+    ld [fp+12] -> %r0
+    mov #5 -> %r1
+    add %r0, %r1 -> %r0
+    ret
+
+main:
+    push #4
+    st %r2 -> [sp]--      / You have to spill r2, r3, and r4
+    st %r3 -> [sp]--
+    st %r4 -> [sp]--
+
+    mov #2 -> %r0          / a(2)+a(3)
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    mov %r0 -> %r2
+
+    mov #3 -> %r0
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    add %r0, %r2 -> %r2
+
+    mov #4 -> %r0          / a(4)+a(5)
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    mov %r0 -> %r3
+
+    mov #5 -> %r0
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    add %r0, %r3 -> %r0
+
+    mul %r2, %r0 -> %r2   / Multiplication
+
+    mov #10 -> %r0          / a(10)+a(11)
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    mov %r0 -> %r3
+
+    mov #11 -> %r0
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    add %r0, %r3 -> %r3
+
+    mov #12 -> %r0          / a(10)+a(11)
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    mov %r0 -> %r4
+
+    mov #13 -> %r0
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    add %r0, %r4 -> %r0
+
+    mul %r3, %r0 -> %r0   / Multiplication, then Addition, then spill
+    add %r2, %r0 -> %r0   
+    st %r0 -> [sp]--
+
+    mov #6 -> %r0          / a(6)+a(7)
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    mov %r0 -> %r2
+
+    mov #7 -> %r0
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    add %r0, %r2 -> %r2
+
+    mov #8 -> %r0          / a(8)+a(9)
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    mov %r0 -> %r3
+
+    mov #9 -> %r0
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    add %r0, %r3 -> %r0
+
+    mul %r2, %r0 -> %r2     / Multiplication
+
+    mov #14 -> %r0          / a(14)+a(15)
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    mov %r0 -> %r3
+
+    mov #15 -> %r0
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    add %r0, %r3 -> %r3
+
+    mov #16 -> %r0          / a(16)+a(17)
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    mov %r0 -> %r4
+
+    mov #17 -> %r0
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    add %r0, %r4 -> %r0
+
+    mul %r3, %r0 -> %r0   / Multiplication, then addition, then unspill and multiply
+    add %r2, %r0 -> %r0   
+    ld ++[sp] -> %r1
+    mul %r0, %r1 -> %r0
+
+    st %r0 -> [fp]
+
+    ld ++[sp] -> %r4      / Unspill before returning
+    ld ++[sp] -> %r3
+    ld ++[sp] -> %r2
+    ret

@@ -1,0 +1,8 @@
+    a:
+        mov #1 -> %r0
+        ret
+    main:
+        push #4
+        jsr a
+        st %r0 -> [fp]
+        ret

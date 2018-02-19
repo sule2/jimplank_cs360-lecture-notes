@@ -1,0 +1,15 @@
+    a:
+        push #4
+        ld [fp+12] -> %r0
+        add %r0, %g1 -> %r0
+        st %r0 -> [fp]
+        ld [fp] -> %r0
+        ret
+    main:
+        push #4 
+        mov #5 -> %r0
+        st %r0 -> [sp]--
+        jsr a
+        pop #4 
+        st %r0 -> [fp]
+        ret
