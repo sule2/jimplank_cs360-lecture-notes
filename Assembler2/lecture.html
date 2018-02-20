@@ -47,18 +47,19 @@ This compiles into assembler that looks like the following:
 
 Both of these procedure calls are straightforward.  <b>Main()</b> first allocates
 one variable on the stack, and then calls "<b>jsr a</b>", which means
-jump to subroutine <b>a</b>.  Once <b>a()</b> returns, it stores the
-value in register <b>r0</b> to the local variable <b>i</b>, which has
-been allocated to be the variable pointed to by the frame pointer.
-Then <b>main()</b> exits.  <b>A()</b> is straightforward as well.  It
-returns the value 1 by storing it in register <b>r0</b>, and then
-returning.<p>
+jump to subroutine <b>a</b>.  All <b>a()</b> does is return 1 to its caller -- it does that
+by setting <b>r0</b> to one, and then calling <b>"ret"</b>.
+When control returns to <b>main()</b> it stores <b>a's</b> return value, which is in <b>r0</b>
+to the memory that it has allocated for <b>i</b>.  And it returns.
+<p>
 
-This seems simple, but what goes on when <b>jsr</b> and <b>ret</b> are
+This seems simple; however, what goes on when <b>jsr</b> and <b>ret</b> are
 called is a little trickier.  This is what happens:<p>
 
 When "<b>jsr</b>" is called, <b>(pc+4)</b> and the current value of
-<b>fp</b> are both stored on the top of the stack.  Then, the <b>fp</b>
+<b>fp</b> are both pushed onto the stack.  Because of the pushing, 
+the <b>sp</b>'s value will be 8
+less than it was before the <b>jsr</b> call.  Then, the <b>fp</b>
 is changed to be the current <b>sp</b>, and <b>pc</b> is changed to be
 the location of the first instruction of the named procedure.  This
 is done atomically by the computer's hardware.  After <b>jsr</b> has
@@ -66,131 +67,57 @@ taken effect, we are in a new stack frame, and the <b>pc</b> is
 executing <b>a()</b>.<p>
 
 When "<b>ret</b>" is called, the <b>sp</b> is changed to be the current
-<b>fp</b>.  Then the <b>fp</b> is popped off the stack: it is set to be
-the top stack value, and the <b>sp</b> is decremented by 4.  Finally,
-the <b>pc</b> is popped off the stack: it is set to be the top stack
-value, and the <b>sp</b> is again decremented by 4.  Like "<b>jsr</b>",
+<b>fp</b>.  Then the <b>fp</b> is popped off the stack: The <b>sp</b>'s value
+is incremented by four, and the <b>fp</b> is read from the stack.
+Finally,
+the <b>pc</b> is popped off the stack: The <b>sp</b>'s value
+is incremented by four again, and the <b>pc</b> is read from the stack.
+Like "<b>jsr</b>",
 this is all done atomically by the hardware.  When "<b>ret</b>"
 completes, the <b>pc</b> is set to be the instruction after the
-original "<b>jsr</b>", and the stack frame of that procedure has been
+original "<b>jsr</b>" instruction, and the stack frame of that procedure has been
 restored.<p>
 
-Let's look at it pictorally (you should use <b>jassem.tcl</b> to do
-this for yourself).  At the start, the stack and registers
+Let's look at it pictorally.  Below is a drawing of what you'll see if you run 
+<b>jassem.tcl</b> on <b>p1.jas</b>.  At the start of the program, the stack and registers
 look as follows:<p> 
 
-<pre>
-              Stack                              registers
-        |----------------|                     |-----------------------|
-        |                |                     |                       | r0
-        |                |                     |                       | r1
-        |    .....       |                     |                       | r2
-        |    unused      |                     |                       | r3
-        |    unused      |                     |                       | r4
-        |    unused      |           /-------- |                       | sp
-        |    unused      | <------------------ |                       | fp
-        |     used       |                     | main: push #4         | pc
-        |     ....       |                     |-----------------------|
-        |--------------- |
-</pre>
 
+<p><center><table border=3><td><img src=p1-1008.jpg width=600></td></table></center><p>
+
+(As an aside -- <b>jassem.tcl</b> assigns zero to unknown values and registers.  Here,
+I'm putting "unknown" to show that we don't know what the values will really be.)
+<p>
 First, the <b>sp</b> is decremented by 4 to allocate the local variable <b>i</b>:
 
-<pre>
-              Stack                              registers
-        |----------------|                     |-----------------------|
-        |                |                     |                       | r0
-        |                |                     |                       | r1
-        |    .....       |                     |                       | r2 
-        |    unused      |                     |                       | r3 
-        |    unused      |                     |                       | r4 
-        |    unused      | <------------------ |                       | sp
-        |    main: i     | <------------------ |                       | fp
-        |     used       |                     | main+4: jsr a         | pc
-        |     ....       |                     |-----------------------|
-        |--------------- |
-</pre>
+<p><center><table border=3><td><img src=p1-100c.jpg width=600></td></table></center><p>
 
-Now <b>jsr</b> is called.  This pushes <b>pc+4</b> and the
+Now <b>jsr</b> is called.  This pushes <b>(pc+4)</b> and the
 value of the <b>fp</b> on the stack, and sets the <b>fp</b> to
 the new <b>sp</b>, and <b>pc</b> to <b>a</b>: 
 
-<pre>
-              Stack                              registers
-        |----------------|                     |-----------------------|
-        |                |                     |                       | r0
-        |                |                     |                       | r1
-        |    .....       |                     |                       | r2 
-        |    unused      | <---\---\           |                       | r3 
-    /---| old fp         |      \   \          |                       | r4 
-    |   | old pc: main+8 |       \   \-------  |                       | sp
-    \-->|    main: i     |        \----------- |                       | fp
-        |     used       |                     | a: mov #1 -> %r0      | pc
-        |     ....       |                     |-----------------------|
-        |--------------- |
-</pre>
+<p><center><table border=3><td><img src=p1-1000.jpg width=600></td></table></center><p>
 
 Note now that we have a new stack frame for <b>a</b>, 
 and the <b>pc</b> is executing <b>a</b>.
 The first thing it does is load <b>1</b> into <b>r0</b>:
 
+<p><center><table border=3><td><img src=p1-1004.jpg width=600></td></table></center><p>
 
-<pre>
-              Stack                              registers
-        |----------------|                     |-----------------------|
-        |                |                     |       1               | r0
-        |                |                     |                       | r1
-        |    .....       |                     |                       | r2
-        |    unused      | <---\---\           |                       | r3
-    /---| old fp         |      \   \          |                       | r4 
-    |   | old pc: main+8 |       \   \-------  |                       | sp
-    \-->|    main: i     |        \----------- |                       | fp
-        |     used       |                     | a+4: ret              | pc
-        |     ....       |                     |-----------------------|
-        |--------------- |
-</pre>
-          
-And then call "<b>ret</b>".  "<b>Ret</b>" sets the <b>sp</b> to the <b>fp</b>
+We then call "<b>ret</b>".  "<b>Ret</b>" sets the <b>sp</b> to the <b>fp</b>
 (which involves nothing in this case), and then
 pops the <b>fp</b> and the <b>pc</b> off the stack.  When it's
 done we're back to <b>main()</b>'s stack frame, and
 executing the next instruction after the <b>jsr</b>: 
 
+<p><center><table border=3><td><img src=p1-1010.jpg width=600></td></table></center><p>
 
-<pre>
-              Stack                              registers
-        |----------------|                     |-----------------------|
-        |                |                     |       1               | r0
-        |                |                     |                       | r1
-        |    .....       |                     |                       | r2
-        |    unused      |                     |                       | r3
-        | old fp         |                     |                       | r4
-        | old pc: main+8 |<------------------- |                       | sp
-        |    main: i     |<------------------- |                       | fp
-        |     used       |                     | main+8: st %r0->[fp]  | pc
-        |     ....       |                     |-----------------------|
-        |--------------- |
-</pre>
-
-
-Note the "old fp" and "old pc" don't get changed. However since they are
+Note the "fp in main" and "pc in main" values don't get changed or erased.  They simply
+remain on the stack. However since they are
 "above the stack", they should not get referenced.
 Now the "<b>st %r0 -> [fp]</b>" gets executed, and the machine state looks like:
 
-<pre>
-              Stack                              registers
-        |----------------|                     |-----------------------|
-        |                |                     |       1               | r0
-        |                |                     |                       | r1
-        |    .....       |                     |                       | r2
-        |    unused      |                     |                       | r3
-        | old fp         |                     |                       | r4
-        | old pc: main+8 |<------------------- |                       | sp
-        |    main: i: 1  |<------------------- |                       | fp
-        |     used       |                     | main+12: ret          | pc
-        |     ....       |                     |-----------------------|
-        |--------------- |
-</pre>
+<p><center><table border=3><td><img src=p1-1014.jpg width=600></td></table></center><p>
 
 Now <b>main()</b> is over, and calls "<b>ret</b>".  You can imagine
 what this does -- the stack is set up so that when <b>main()</b> calls
@@ -200,8 +127,7 @@ goes away.
 <p>
 Now, make sure you go over this with <b>Jassem</b>.  The program is
 in <a href=p1.jas><b>p1.jas</b></a>, and you should see exactly what
-I have showed above, only you get to see all the memory addresses
-as well.
+I have shown above.
 
 <hr>
 
@@ -302,8 +228,6 @@ this in <b>jassem</b>:
 <p><center><table border=3><td><img src=p2-jsr.jpg width=600></td></table></center><p>
 
 It's good practice to label the stack -- you should be able to account for every word.
-In <b>jassem</b>, the "unknown" values are 0's.  That's not always the case on a real machine,
-so in my picture above, I've marked unknown values as "unknown."
 <p>
 Now, the <b>jsr</b> statement pushes <b>(pc+4)</b> onto the stack, and then the value
 of the <b>fp</b>.  It then sets the <b>pc</b> to the first instruction in <b>a</b>.  That
