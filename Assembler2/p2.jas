@@ -1,15 +1,43 @@
-    a:
-        push #4
-        ld [fp+12] -> %r0
-        add %r0, %g1 -> %r0
-        st %r0 -> [fp]
-        ld [fp] -> %r0
-        ret
-    main:
-        push #4 
-        mov #5 -> %r0
-        st %r0 -> [sp]--
-        jsr a
-        pop #4 
-        st %r0 -> [fp]
-        ret
+a:
+    push #4                 / Allocate k, which will be [fp]
+    
+    ld [fp+12] -> %r0       / i++
+    add %r0, %g1 -> %r0
+    st %r0 -> [fp+12]
+
+    ld [fp+20] -> %r0       / j -= 2
+    mov #2 -> %r1
+    sub %r0, %r1 -> %r0
+    st %r0 -> [fp+16]
+
+    ld [fp+16] -> %r0       / k = i * j
+    ld [fp+20] -> %r1
+    mul %r0, %r1 -> %r0
+    st %r0 -> [fp]
+
+    ld [fp] -> %r0          / return k
+    ret
+
+main:
+    push #12                / Allocate i, j, k.  
+                            / i is [fp-8], j is [fp-4], k is [fp]
+
+    mov #3 -> %r0           / i = 3
+    st %r0 -> [fp-8] 
+    mov #4 -> %r0           / j = 4
+    st %r0 -> [fp-4]
+
+    ld [fp-8] -> %r0        / Push i onto the stack
+    st %r0 -> [sp]--
+
+    ld [fp-4] -> %r0        / Push j+1 onto the stack
+    add %r0, %g1 -> %r0
+    st %r0 -> [sp]--
+
+    jsr a                   / Call a(), then pop the arguments 
+    pop #8  
+
+    st %r0 -> [fp]         / Put the return value into k
+    
+    mov #0 -> %r0          / Return 0
+    ret

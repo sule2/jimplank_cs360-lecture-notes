@@ -205,46 +205,101 @@ as well.
 
 <hr>
 
-This next example shows a procedure with arguments and local variables
+The next example shows a procedure with arguments and local variables.
+It's a pretty meaty example.  The C code 
 (<b><a href=p2.c>p2.c</a></b>):
+is to the left, and the assembler
+(<b><a href=p2.jas>p2.jas</a></b>):
+is to the right:
 
-<p><center><table border=3 cellpadding=3><td><pre>
-int a(int i)
+<p><center><table border=3 cellpadding=3><td valign=top><pre>
+int a(int i, int j)
 {
-  int j;
+  int k;
 
-  j = i+1;
-  return j;
+  i++;
+  j -= 2;
+  k = i * j;
+  return k;
 }
 
 int main()
 {
-  int i;
+  int i, j, k;
 
-  i = a(5);
+  i = 3;
+  j = 4;
+  k = a(j+1, i);
+  return 0;
 }
+</pre></td>
+<td valign=top><pre>
+a:
+    push #4                 <font color=blue>/ Allocate k, which will be [fp]</font>
+    
+    ld [fp+12] -&gt; %r0       <font color=blue>/ i++</font>
+    add %r0, %g1 -&gt; %r0
+    st %r0 -&gt; [fp+12]
+
+    ld [fp+20] -&gt; %r0       <font color=blue>/ j -= 2</font>
+    mov #2 -&gt; %r1
+    sub %r0, %r1 -&gt; %r0
+    st %r0 -&gt; [fp+16]
+
+    ld [fp+16] -&gt; %r0       <font color=blue>/ k = i * j</font>
+    ld [fp+20] -&gt; %r1
+    mul %r0, %r1 -&gt; %r0
+    st %r0 -&gt; [fp]
+
+    ld [fp] -&gt; %r0          <font color=blue>/ return k</font>
+    ret
+
+main:
+    push #12                <font color=blue>/ Allocate i, j, k.  </font>
+                            <font color=blue>/ i is [fp-8], j is [fp-4], k is [fp]</font>
+
+    mov #3 -&gt; %r0           <font color=blue>/ i = 3</font>
+    st %r0 -&gt; [fp-8] 
+    mov #4 -&gt; %r0           <font color=blue>/ j = 4</font>
+    st %r0 -&gt; [fp-4]
+
+    ld [fp-8] -&gt; %r0        <font color=blue>/ Push i onto the stack</font>
+    st %r0 -&gt; [sp]--
+
+    ld [fp-4] -&gt; %r0        <font color=blue>/ Push j+1 onto the stack</font>
+    add %r0, %g1 -&gt; %r0
+    st %r0 -&gt; [sp]--
+
+    jsr a                   <font color=blue>/ Call a(), then pop the arguments </font>
+    pop #8  
+
+    st %r0 -&gt; [fp]         <font color=blue>/ Put the return value into k</font>
+    
+    mov #0 -&gt; %r0          <font color=blue>/ Return 0</font>
+    ret
 </pre></td></table></center><p>
 
-This gets compiled into code like the following:
+Let's focus first on the <b>main()</b>.  In the beginning, it decrements the
+stack pointer by 12, which allocates, 
+<b>i</b>,
+<b>j</b> and
+<b>k</b> on the stack.  Our compiler puts them in the order in which they are declared
+on the stack, so as the comments above state: 
+<b>i</b> is at <b>[fp-8]</b>, 
+<b>j</b> is at <b>[fp-4]</b> and
+<b>k</b> is at <b>[fp]</b>.  Next, we initialize <b>i</b> and <b>j</b>.  That is straightforward.
 
+<p>
+The procedure call requires explanation.  When you call a procedure with arguments, what you
+do is <i>push the arguments onto the stack in reverse order</i>.  Then you call <b>jsr</b>.
+When the <b>jsr</b> call returns, you pop the arguments off the stack, so that you can 
+reuse that memory.  
+<p>
+In this case, let's take a look at the stack when <b>main()</b> calls <b>jsr</b>.  I'm going
+to draw this myself, but the values and addresses match up with what happens when you run 
+this in <b>jassem</b>:
 
-<pre>
-    a:
-	push #4
-	ld [fp+12] -> %r0
-	add %r0, %g1 -> %r0
-	st %r0 -> [fp]
-	ld [fp] -> %r0
-	ret
-    main:
-	push #4 
-        mov #5 -> %r0
-        st %r0 -> [sp]--
-	jsr a
-	pop #4 
-	st %r0 -> [fp]
-	ret
-</pre>
+HERE
 
 The only real difference between this example and
 the last is the argument to <b>a()</b>.  It should be

@@ -1,14 +1,19 @@
-int a(int i)
+int a(int i, int j)
 {
-  int j;
+  int k;
 
-  j = i+1;
-  return j;
+  i++;
+  j -= 2;
+  k = i * j;
+  return k;
 }
 
 int main()
 {
-  int i;
+  int i, j, k;
 
-  i = a(5);
+  i = 3;
+  j = 4;
+  k = a(j+1, i);
+  return 0;
 }
