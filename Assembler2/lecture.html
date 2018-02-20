@@ -241,13 +241,13 @@ a:
     add %r0, %g1 -&gt; %r0
     st %r0 -&gt; [fp+12]
 
-    ld [fp+20] -&gt; %r0       <font color=blue>/ j -= 2</font>
+    ld [fp+16] -&gt; %r0       <font color=blue>/ j -= 2</font>
     mov #2 -&gt; %r1
     sub %r0, %r1 -&gt; %r0
     st %r0 -&gt; [fp+16]
 
-    ld [fp+16] -&gt; %r0       <font color=blue>/ k = i * j</font>
-    ld [fp+20] -&gt; %r1
+    ld [fp+12] -&gt; %r0       <font color=blue>/ k = i * j</font>
+    ld [fp+16] -&gt; %r1
     mul %r0, %r1 -&gt; %r0
     st %r0 -&gt; [fp]
 
@@ -299,35 +299,79 @@ In this case, let's take a look at the stack when <b>main()</b> calls <b>jsr</b>
 to draw this myself, but the values and addresses match up with what happens when you run 
 this in <b>jassem</b>:
 
-HERE
+<p><center><table border=3><td><img src=p2-jsr.jpg width=600></td></table></center><p>
 
-The only real difference between this example and
-the last is the argument to <b>a()</b>.  It should be
-clear how <b>a</b> allocates its local variable <b>j</b> on the
-stack by decrementing the stack pointer ("push #4").  <b>j</b> is
-then referenced as the location pointed to by the
-frame pointer.  Arguments are passed from the
-calling procedure by pushing them onto the stack
-in reverse order (here there is only one
-argument), and then calling <b>jsr</b>.  The procedure
-knows how to reference the arguments -- they
-start at the memory location 12 bytes ahead of
-the <b>fp</b>.  Why?  Well, <b>[fp]</b> points to the beginning
-of the frame.  <b>[fp+4]</b> points to the old frame
-pointer, and <b>[fp+8]</b> points to the <b>pc</b> to return to
-when the procedure is over.  Thus, if the
-arguments are pushed onto the stack directly
-before calling <b>jsr</b>, then they start at <b>[fp+12]</b>.  
+It's good practice to label the stack -- you should be able to account for every word.
+In <b>jassem</b>, the "unknown" values are 0's.  That's not always the case on a real machine,
+so in my picture above, I've marked unknown values as "unknown."
+<p>
+Now, the <b>jsr</b> statement pushes <b>(pc+4)</b> onto the stack, and then the value
+of the <b>fp</b>.  It then sets the <b>pc</b> to the first instruction in <b>a</b>.  That
+instruction is <b>push #4</b>, so that it allocates <b>k</b>.  At this point, here are
+the labeled stack values and registers.  You'll note, I've relabeled the two arguments
+that were pushed onto the stack as "<b>i</b> in <b>main()</b>" and 
+"<b>j</b> in <b>main()</b>":
+
+<p><center><table border=3><td><img src=p2-ld.jpg width=600></td></table></center><p>
+<p>
+Now, let's consider how <b>a()</b> finds its two arguments.  It knows that the old
+<b>fp</b> is in <b>[fp+4]</b> and the old <b>pc</b> is in <b>[fp+8]</b>.  
+Since the arguments are pushed in reverse order, the first argument should be next,
+at <b>[fp+12]</b>.  The second argument is at <b>[fp+16]</b>.  If there were a third
+argument, it would be at <b>[fp+20]</b>, and so on.  
+<p>
+Now, let's look at the state when <b>a()</b> returns.  At that point, you should see
+that <b>a()'s</b> variables 
+<b>i</b>, 
+<b>j</b> and
+<b>k</b> are equal to 6, 1 and 6 respectively.  <b>k</b>'s value has been loaded into the
+register <b>r0</b>, as that is how return values are passed from one procedure to another:
+
+<p><center><table border=3><td><img src=p2-a-ret.jpg width=600></td></table></center><p>
+
+Finally, when the <b>pc</b> is set to <tt>0x1064</tt> and the <b>fp</b> is set back to 
+<tt>0xfff448</tt>, we are back in <b>main()</b>.  The stack pointer is popped eight bytes,
+and the return value is stored into <b>k</b>.  When <b>main()</b> returns, the system looks
+as follows:
+<p><center><table border=3><td><img src=p2-main-ret.jpg width=600></td></table></center><p>
+
+Let's go over all of the main points from this example (including some review):
+
+<UL>
+<LI> The <b>jsr</b> statement does four things: It pushes <b>(pc+4)</b> onto the stack, then <b>fp</b>, then it sets the <b>fp</b> to the current value of the <b>sp</b>, and the <b>pc</b> to the first instruction of the given procedure.
+<p>
+<LI> The <b>ret</b> statement undoes what <b>jsr</b> has set up: It sets the <b>sp</b> to the
+current value of the <b>fp</b>, then it pops the <b>fp</b> and the <b>pc</b> off of the stack.
+<p>
+<LI> If a procedure has arguments, you need to push them onto the stack in reverse order, before
+making the <b>jsr</b> call.
+<p>
+<LI> Thus, when a procedure is called, its first argument is at <b>[fp+12]</b>.  
+Its second argument is at <b>[fp+16]</b>.  
+Its third argument is at <b>[fp+20]</b>.   And so on.
+<p>
+<LI> When a procedure returns a value to its caller, it stores the value in <b>r0</b>.
+<p>
+<LI> If you have pushed arguments before calling <b>jsr</b>, then the very first thing that
+you should do when the <b>jsr</b> call returns is pop those arguments off the stack.
+<p>
+<LI> Although you are not currently using values whose addresses are less than or equal to
+the stack pointer, those addresses will have values, and those values may be deterministic.
+For example, in that last picture, there are a lot of values above the stack pointer, and
+we know what all of them are between <tt>0xfff42c</tt> and <tt>0xfff43c</tt>, because we know
+what the previous instructions have done.
+<p>
+<LI> You should be able to see how each procedure gets its own memory locations for its parameters
+and local variables.  Even though <b>main()</b> and <b>a()</b> each used 
+<b>i</b>, <b>j</b> and <b>k</b>, they had their own separate memory locations for them.
+<p>
+<LI> You should also see how memory gets allocated for local variables and parameters when a 
+procedure executes, and how it goes away when the procedure is done.
+</UL>
 
 <p>
-Pushing them in reverse order, means that the first argument is always 
-at <b>[fp+12]</b>.  The second argument is at <b>[fp+16]</b>.  The third
-argument is at <b>[fp+20]</b>, and so on.
-<p>
-This program is in <a href=p2.jas><b>p2.jas</b></a>, and you should
-trace through it using <b>Jassem</b>.  Make sure you understand
-how <b>main</b> pushes its argument on the stack, how <b>a</b> finds
-the argument, and what happens on <b>jsr/ret</b>.
+As always, I advocate running <b>jassem.tcl</b> on this program yourself and making sure you
+understand what's going on.
 <p>
  
 <hr>

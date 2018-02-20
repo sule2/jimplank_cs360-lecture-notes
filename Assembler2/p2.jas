@@ -5,13 +5,13 @@ a:
     add %r0, %g1 -> %r0
     st %r0 -> [fp+12]
 
-    ld [fp+20] -> %r0       / j -= 2
+    ld [fp+16] -> %r0       / j -= 2
     mov #2 -> %r1
     sub %r0, %r1 -> %r0
     st %r0 -> [fp+16]
 
-    ld [fp+16] -> %r0       / k = i * j
-    ld [fp+20] -> %r1
+    ld [fp+12] -> %r0       / k = i * j
+    ld [fp+16] -> %r1
     mul %r0, %r1 -> %r0
     st %r0 -> [fp]
 
