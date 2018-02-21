@@ -1,0 +1,31 @@
+main:
+  push #20              / Allocate locals and spill r2
+  st %r2 -> [sp]--
+
+  mov #6 -> %r0         / i = 6
+  st %r0 -> [fp]
+
+  st %fp -> [fp-16]     / a = &i
+  
+  mov #2 -> %r0         / a2[1] = i+2
+  ld [fp] -> %r1
+  add %r0, %r1 -> %r0
+  st %r0 -> [fp-8]
+
+  mov #2 -> %r0         / *a = 2
+  ld [fp-16] -> %r1
+  st %r0 -> [r1]
+
+  ld [fp] -> %r0        / *(a+i) = i+5
+  mov #5 -> %r1
+  add %r0, %r1 -> %r0   
+  ld [fp] -> %r1  
+  mov #4 -> %r2
+  mul %r1, %r2 -> %r1
+  mov #-12 -> %r2
+  add %r1, %r2 -> %r1
+  add %fp, %r1 -> %r1
+  st %r0 -> [r1]
+  
+  ld ++[sp] -> %r2      / Unspill and exit
+  ret

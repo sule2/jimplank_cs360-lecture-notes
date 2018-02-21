@@ -1,0 +1,43 @@
+a:
+   push #4
+
+   ld [fp+12] -> %r0
+   ld [r0] -> %r0
+   st %r0 -> [fp]
+
+   ld [fp+12] -> %r0
+   mov #12 -> %r1
+   add %r0, %r1 -> %r0
+   ld [r0] -> %r0
+   st %r0 -> [fp]
+
+   ld [fp] -> %r0
+   mov #4 -> %r1
+   mul %r0, %r1 -> %r0
+   ld [fp+12] -> %r1
+   add %r0, %r1 -> %r0
+   ld [r0] -> %r0
+   st %r0 -> [fp]
+   
+   ret
+   
+main:
+   push #20
+
+   mov #10 -> %r0        / Store the values of array
+   st %r0 -> [fp-16]
+   mov #11 -> %r0
+   st %r0 -> [fp-12]
+   mov #12 -> %r0
+   st %r0 -> [fp-8]
+   mov #2 -> %r0
+   st %r0 -> [fp-4]
+   mov #15 -> %r0
+   st %r0 -> [fp]
+
+   mov #-16 -> %r0        / Push array onto the stack
+   add %fp, %r0 -> %r0
+   st %r0 -> [sp]--       / call a
+   jsr a
+   pop #4
+   ret

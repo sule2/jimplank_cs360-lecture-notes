@@ -20,3 +20,4 @@ Lecture notes and example programs for Dr. Plank's CS360 class at the University
 - [Lecture #13: Umask and Other System Calls](Umask-And-Others/README.md)
 - [Lecture #14: Assembler Lecture #1: Introduction; Global and local variables](Assembler1/README.md)
 - [Lecture #15: Assembler Lecture #2: Procedure calls and spilling](Assembler2/README.md)
+- [Lecture #16: Assembler Lecture #3: Pointers](Assembler3/README.md)

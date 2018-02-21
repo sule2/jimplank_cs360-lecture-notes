@@ -1,0 +1,46 @@
+a:
+  push #4
+
+  ld [fp+12] -> %r0
+  ld [fp+16] -> %r1
+  add %r0, %r1 -> %r0
+  ld [fp+20] -> %r1
+  add %r0, %r1 -> %r0
+  ld [fp+24] -> %r1
+  add %r0, %r1 -> %r0
+  st %r0 -> [fp]
+  ret
+
+b:
+  push #20
+
+  ld [fp+12] -> %r0
+  mov #4 -> %r1
+  mul %r0, %r1 -> %r0
+  mov #-16 -> %r1
+  add %r0, %r1 -> %r0
+  add %r0, %fp -> %r0
+  ld [r0] -> %r0
+  ret
+  
+main:
+  push #4
+
+  mov #8 -> %r0
+  st %r0 -> [sp]--
+  mov #7 -> %r0
+  st %r0 -> [sp]--
+  mov #6 -> %r0
+  st %r0 -> [sp]--
+  mov #5 -> %r0
+  st %r0 -> [sp]--
+  jsr a
+  pop #16
+
+  mov #2 -> %r0
+  st %r0 -> [sp]--
+  jsr b
+  pop #4
+  st %r0 -> [fp]
+  ret
+  

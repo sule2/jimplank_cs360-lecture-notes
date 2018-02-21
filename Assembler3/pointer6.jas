@@ -1,0 +1,68 @@
+x:
+   st %r2 -> [sp]--        / Spill r2
+
+   ld [fp+20] -> %r0       / Do the right part of the tree.
+   mov #2 -> %r1
+   sub %r0, %r1 -> %r0
+   mov #4 -> %r1
+   mul %r0, %r1 -> %r0
+   
+   mov #2 -> %r1           / Do the left part of the tree
+   ld [fp+16] -> %r2
+   add %r1, %r2 -> %r1
+   mov #4 -> %r2
+   mul %r1, %r2 -> %r1
+   ld [fp+12] -> %r2
+   add %r1, %r2 -> %r1
+   ld [r1] -> %r1
+
+   add %r0, %r1 -> %r0     / Add them up 
+   ld [r0] -> %r0
+
+   ld ++[sp] -> %r2        / Unspill r2
+   ret
+   
+main:
+   push #52
+
+   st %g1 -> [fp-48]    / Do a[0] through c[2].
+   mov #2 -> %r0
+   st %r0 -> [fp-44]
+   mov #3 -> %r0
+   st %r0 -> [fp-40]
+   mov #4 -> %r0
+   st %r0 -> [fp-36]
+   mov #5 -> %r0
+   st %r0 -> [fp-32]
+   mov #6 -> %r0
+   st %r0 -> [fp-28]
+   mov #7 -> %r0
+   st %r0 -> [fp-24]
+   mov #8 -> %r0
+   st %r0 -> [fp-20]
+   mov #9 -> %r0
+   st %r0 -> [fp-16]
+
+   mov #-48 -> %r0        / d[0] = a
+   add %fp, %r0 -> %r0
+   st %r0 -> [fp-12]
+
+   mov #-36 -> %r0        / d[1] = b
+   add %fp, %r0 -> %r0
+   st %r0 -> [fp-8]
+
+   mov #-24 -> %r0        / d[2] = c
+   add %fp, %r0 -> %r0
+   st %r0 -> [fp-4]
+
+   mov #3 -> %r0          / Push the arguments in reverse order
+   st %r0 -> [sp]--
+   st %g0 -> [sp]--
+   mov #-12 -> %r0        
+   add %fp, %r0 -> %r0
+   st %r0 -> [sp]--
+
+   jsr x                  / call x and set e
+   pop #12
+   st %r0 -> [fp]
+   ret

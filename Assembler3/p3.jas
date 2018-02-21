@@ -1,0 +1,41 @@
+a:
+    st %r2 -> [sp]--      / Spill r3
+    st %r3 -> [sp]--      / Spill r3
+
+    ld [fp+12] -> %r0     / Load x into r0
+    ld [r0] -> %r1        / Load x[0] into r1
+    ld [fp+12] -> %r2     / Load x[2] into r2
+    mov #8 -> %r3
+    add %r2, %r3 -> %r2
+    ld [r2] -> %r2 
+    add %r1, %r2 -> %r2   / Add them and put the result into r2
+    st %r2 -> [r0]        / Store r2 into x[0]
+
+    ld [fp+12] -> %r0     / return x+1
+    mov #4 -> %r1
+    add %r0, %r1 -> %r0
+
+    ld ++[sp] -> %r3      / Restore r3
+    ld ++[sp] -> %r2      / Restore r2
+    ret
+
+main:
+    push #16           // Array = fp-8, ip = fp-12
+    mov #8 -> %r0
+    st %r0 -> [fp-8]
+    mov #9 -> %r0
+    st %r0 -> [fp-4]
+    mov #10 -> %r0
+    st %r0 -> [fp]
+ 
+    mov #-8 -> %r0
+    add %r0, %fp -> %r0
+    st %r0 -> [sp]--
+    jsr a
+    pop #4
+    st %r0 -> [fp-12]
+
+    ld [fp-12] -> %r0
+    ld [r0] -> %r1
+    add %g1, %r1 -> %r1
+    st %r1 -> [r0]

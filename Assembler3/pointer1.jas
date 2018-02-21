@@ -1,0 +1,15 @@
+main:
+    push #12               / Allocate the three locals
+    
+    mov #-4 -> %r0         / jp = &j.
+    add %fp, %r0 -> %r0
+    st %r0 -> [fp]
+
+    mov #15 -> %r0         / j = 15
+    st %r0 -> [fp-4]
+
+    ld [fp] -> %r0         / i = *jp
+    ld [r0] -> %r0
+    st %r0 -> [fp-8]
+
+    ret

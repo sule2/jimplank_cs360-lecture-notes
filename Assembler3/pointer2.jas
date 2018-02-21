@@ -1,0 +1,17 @@
+a:
+    ld [fp+12] -> %r0      / get p's value
+    ld [r0] -> %r0         / dereference it
+    ret
+
+main:
+    push #8
+
+    mov #15 -> %r0         / j = 15
+    st %r0 -> [fp]
+
+    st %fp -> [sp]--       / push &j on the stack 
+    jsr a                  / and call a()
+    pop #4
+    st %r0 -> [fp-4]
+
+    ret
