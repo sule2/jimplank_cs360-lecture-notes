@@ -1,23 +1,26 @@
 fact:
-        ld [fp+12] -> %r0          / do the if statement
-        cmp %r0, %g0
-        bne l1
-        mov %g1 -> %r0
-        ret
+    ld [fp+12] -> %r0          / do the if statement
+    cmp %r0, %g0
+    bne l1
+    mov %g1 -> %r0
+    ret
+
 l1:
-        ld [fp+12] -> %r0          / push i-1 on the stack
-        add %r0, %gm1 -> %r0
-        st %r0 -> [sp]--
-        jsr fact                   / jump to fact
-        pop #4                     / pop the argument off the stack
-        ld [fp+12] -> %r1          / multiply fact(i-1)*i
-        mul %r0, %r1 -> %r0
-        ret
+    ld [fp+12] -> %r0          / push i-1 on the stack
+    add %r0, %gm1 -> %r0
+    st %r0 -> [sp]--
+    jsr fact                   / recursive call to fact
+    pop #4                     / pop the argument off the stack
+
+    ld [fp+12] -> %r1          / multiply fact(i-1)*i
+    mul %r0, %r1 -> %r0
+    ret
+
 main: 
-        push #4
-        mov #4 -> %r0
-        st %r0 -> [sp]--
-        jsr fact
-        pop #4
-        st %r0 -> [fp]
-        ret
+    push #4
+    mov #4 -> %r0
+    st %r0 -> [sp]--
+    jsr fact
+    pop #4
+    st %r0 -> [fp]
+    ret

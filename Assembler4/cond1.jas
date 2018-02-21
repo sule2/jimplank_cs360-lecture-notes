@@ -1,0 +1,28 @@
+a:
+  push #4                / Allocate k
+  
+  ld [fp+12] -> %r0      / Compare i & j
+  ld [fp+16] -> %r1      / Branch on negation of less-than
+  cmp %r0, %r1
+  bge l1
+
+  ld [fp+12] -> %r0      / k = i
+  st %r0 -> [fp]
+  b l2
+
+l1:
+  ld [fp+16] -> %r0      / k = j
+  st %r0 -> [fp]
+
+l2:
+  ld [fp] -> %r0         / return k
+  ret
+
+main:
+  mov #4 -> %r0
+  st %r0 -> [sp]--
+  mov #3 -> %r0
+  st %r0 -> [sp]--
+  jsr a
+  ret
+

@@ -1,0 +1,28 @@
+fact:
+  ld [fp+12] -> %r0      / This is the base case.
+  cmp %r0, %g0           / If i == 0, return val_so_far
+  bne l1
+  ld [fp+16] -> %r0
+  ret
+
+l1:
+  ld [fp+16] -> %r0      / Replace val_so_far
+  ld [fp+12] -> %r1      / with (val_so_far * i)
+  mul %r0, %r1 -> %r0
+  st %r0 -> [fp+16]
+
+  ld [fp+12] -> %r0      / Replace i with i-1
+  add %r0, %gm1 -> %r0
+  st %r0 -> [fp+12]
+
+  b fact                 / Branch back instead of doing recursion.
+
+main:
+  push #4
+  st %g1 -> [sp]--
+  mov #5 -> %r0
+  st %r0 -> [sp]--
+  jsr fact
+  pop #8
+  st %r0 -> [fp]
+  ret

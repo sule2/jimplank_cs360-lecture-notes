@@ -62,7 +62,7 @@ There are multiple ways to do them.  Here is how I recommend to do each
 type of statement:
 <p>
 <table border=3 cellpadding=5>
-<td>
+<td valign=top>
 <pre>
 if (<b>cond</b>) {
    <b>S1</b>
@@ -84,44 +84,63 @@ l2:
 </pre>
 </table>
 <p>
-For example:
-<pre>
+For example, here is a program that does a simple if-then-else: 
+
+
+<p><center><table border=3 cellpadding=3><td valign=top>
+<b><a href=cond1.c>cond1.c</a></b><pre>
 int a(int i, int j)
 {
   int k;
 
-  if (i < j) {
+  if (i &lt; j) {
     k = i;
   } else {
     k = j;
   }
   return k;
 }
-</pre>
-<pre>
+
+int main()
+{
+  return a(3, 4);
+}
+</pre></td><td valign=top>
+<b><a href=cond1.jas>cond1.jas</a></b><pre>
 a:
-   push #4
-   ld [fp+12] -> %r0           / Load i into r0
-   ld [fp+16] -> %r1           / Load j into r0
+  push #4                <font color=blue>/ Allocate k</font>
+  
+  ld [fp+12] -&gt; %r0      <font color=blue>/ Compare i & j</font>
+  ld [fp+16] -&gt; %r1      <font color=blue>/ Branch on negation of less-than</font>
+  cmp %r0, %r1
+  bge l1
 
-   cmp %r0, %r1                / Compare and branch on the <i>negation</i> (greater than or equal)
-   bge l1
-
-   ld [fp+12] -> %r0           / k = i
-   st %r0 -> [fp]
-   b l2
+  ld [fp+12] -&gt; %r0      <font color=blue>/ k = i</font>
+  st %r0 -&gt; [fp]
+  b l2
 
 l1:
-   ld [fp+16] -> %r0           / k = j
-   st %r0 -> [fp]
-l2: 
+  ld [fp+16] -&gt; %r0      <font color=blue>/ k = j</font>
+  st %r0 -&gt; [fp]
 
-   ld [fp] -> %r0              / return k
-   ret
-</pre>
+l2:
+  ld [fp] -&gt; %r0         <font color=blue>/ return k</font>
+  ret
+
+main:
+  mov #4 -&gt; %r0
+  st %r0 -&gt; [sp]--
+  mov #3 -&gt; %r0
+  st %r0 -&gt; [sp]--
+  jsr a
+  ret
+</pre></td></table></center><p>
+Trace through it with <b>jassem.tcl</b> to see that <b>r0</b> will be three when <b>main()</b>
+returns.
 <p>
+<hr>
 <table border=3 cellpadding=5>
-<td>
+<td valign=top>
 <pre>
 while (<b>cond</b>) {
    <b>S1</b>
@@ -140,8 +159,9 @@ l2:
 </pre>
 </table>
 <p>
+<hr>
 <table border=3 cellpadding=5>
-<td>
+<td valign=top>
 <pre>
 for (<b>S1</b>; <b>cond</b>; <b>S2</b>) {
    <b>S3</b>
@@ -164,92 +184,122 @@ l3:
 </pre>
 </table>
 <hr>
-For example:
-<pre>
+For example, here's a program that uses a <b>for</b> loop to sum the numbers from 1 to <b>k</b>:
+
+<p><center><table border=3 cellpadding=3><td valign=top>
+<b><a href=cond2.c>cond2.c</a></b><pre>
 int a(int k)
 {
   int i, j;
 
   j = 0;
 
-  for (i = 0; i < k; i++) j += i;
+  for (i = 1; i &lt;= k; i++) j += i;
 
   return j;
 }
-</pre>
 
-will compile into:
+int main()
+{
+  int i;
 
-<pre>
-  push #8                      / Allocate i and j on the stack
+  i = a(4);
+}
+</pre></td>
+<td valign=top>
+<b><a href=cond2.jas>cond2.jas</a></b><pre>
+a:
+  push #8                      <font color=blue>/ Allocate i and j on the stack</font>
   
-  st %g0 -> [fp-4]             / Set j to zero
+  st %g0 -&gt; [fp-4]             <font color=blue>/ Set j to zero</font>
 
-  st %g0 -> [fp]               / Initialize the for loop  (S1)
+  st %g1 -&gt; [fp]               <font color=blue>/ Initialize the for loop  (S1)</font>
   b l2
 
 l1:
 
-  ld [fp] -> %r0               / Do i++ (S2)
-  add %r0, %g1 -> %r0
-  st %r0 -> [fp]
+  ld [fp] -&gt; %r0               <font color=blue>/ Do i++ (S2)</font>
+  add %r0, %g1 -&gt; %r0
+  st %r0 -&gt; [fp]
 
 l2:
-  ld [fp] -> %r0               / Perform the test, and branch on the <i>negation</i>
-  ld [fp+12] -> %r1
+  ld [fp] -&gt; %r0               <font color=blue>/ Perform the test, and </font>
+  ld [fp+12] -&gt; %r1            <font color=blue>/ branch on the negation</font>
   cmp %r0, %r1
-  bge l3
+  bgt l3
 
-  ld [fp-4] -> %r0             / Do j += i  (S3)
-  ld [fp] -> %r1
-  add %r0, %r1 -> %r0
-  st %r0 -> [fp-4]
+  ld [fp-4] -&gt; %r0             <font color=blue>/ Do j += i  (S3)</font>
+  ld [fp] -&gt; %r1
+  add %r0, %r1 -&gt; %r0
+  st %r0 -&gt; [fp-4]
   b l1
 
 l3:                           
-  ld [fp-4] -> %r0             / return j (S4)
+  ld [fp-4] -&gt; %r0             <font color=blue>/ return j (S4)</font>
   ret
-</pre>
 
-As always, this code can be optimized greatly.  I'll leave it to
-you to figure out how.<p>
+main:
+  push #4
+
+  mov #4 -&gt; %r0
+  st %r0 -&gt; [sp]--
+  jsr a
+  pop #4
+  st %r0 -&gt; [fp]
+  ret
+</pre></td></table></center><p>
+
 
 <hr>
 <h1>Recursion</h1>
-<p>By now, recursive procedures shouldn't seem mysterious.
-For example:
+<p>By now, recursive procedures shouldn't seem mysterious.  Below, I have a
+recursive implementation of factorial:
 
-<pre>
+
+<p><center><table border=3 cellpadding=3><td valign=top>
+<b><a href=fact4.c>fact4.c</a></b><pre>
 int fact(int i)
 {
   if (i == 0) return 1;
   return fact(i-1)*i;
 }
-</pre>
 
-will compile into:
+int main()
+{
+  int i;
 
-<pre>
-    fact:
-	ld [fp+12] -> %r0          / do the if statement
-	cmp %r0, %g0
-	bne l1
-
-        mov %g1 -> %r0
-        ret
+  i = fact(4);
+}
+</pre></td>
+<td valign=top>
+<b><a href=fact4.jas>fact4.jas</a></b><pre>
+fact:
+    ld [fp+12] -&gt; %r0          <font color=blue>/ do the if statement</font>
+    cmp %r0, %g0
+    bne l1
+    mov %g1 -&gt; %r0
+    ret
 
 l1:
-        ld [fp+12] -> %r0          / push i-1 on the stack
-	add %r0, %gm1 -> %r0
-	st %r0 -> [sp]--
+    ld [fp+12] -&gt; %r0          <font color=blue>/ push i-1 on the stack</font>
+    add %r0, %gm1 -&gt; %r0
+    st %r0 -&gt; [sp]--
+    jsr fact                   <font color=blue>/ recursive call to fact</font>
+    pop #4                     <font color=blue>/ pop the argument off the stack</font>
 
-	jsr fact                   / jump to fact
-	pop #4                     / pop the argument off the stack
+    ld [fp+12] -&gt; %r1          <font color=blue>/ multiply fact(i-1)*i</font>
+    mul %r0, %r1 -&gt; %r0
+    ret
 
-	ld [fp+12] -> %r1          / multiply fact(i-1)*i
-	mul %r0, %r1 -> %r0
-	ret
-</pre>
+main: 
+    push #4
+    mov #4 -&gt; %r0
+    st %r0 -&gt; [sp]--
+    jsr fact
+    pop #4
+    st %r0 -&gt; [fp]
+    ret
+</pre></td></table></center><p>
 
 Each recursive call pushes a new stack frame.  You can use Use <b>jassem.tcl</b>
 on the program <b><a href=fact4.c>fact4.c</a></b>, compiled into
@@ -308,31 +358,31 @@ and below:
 
 <pre>
 bsort:
-   push #12                 / i=fp-8, j=fp-4, tmp=fp
-   st %r2 -> [sp]--         / Spill r2
+   push #12                 <font color=blue>/ i=fp-8, j=fp-4, tmp=fp</font>
+   st %r2 -> [sp]--         <font color=blue>/ Spill r2</font>
    
-                            / For loop #1: labels f11, f12, f13
-   ld [fp+16] -> %r0        / i = size-1
+                            <font color=blue>/ For loop #1: labels f11, f12, f13</font>
+   ld [fp+16] -> %r0        <font color=blue>/ i = size-1</font>
    add %r0, %gm1 -> %r0
    st %r0 -> [fp-8]
    b f12
 
 f11:
-   ld [fp-8] -> %r0         / i--
+   ld [fp-8] -> %r0         <font color=blue>/ i--</font>
    add %r0, %gm1 -> %r0
    st %r0 -> [fp-8]
 
 f12:
-   ld [fp-8] -> %r0         / i > 0
+   ld [fp-8] -> %r0         <font color=blue>/ i > 0</font>
    cmp %r0, %g0
    ble f13
 
-                            / For loop #2: labels f21, f22, f23
-   st %g0 -> [fp-4]         / j = 0
+                            <font color=blue>/ For loop #2: labels f21, f22, f23</font>
+   st %g0 -> [fp-4]         <font color=blue>/ j = 0</font>
    b f22
 
 f21:
-   ld [fp-4] -> %r0         / j++
+   ld [fp-4] -> %r0         <font color=blue>/ j++</font>
    add %r0, %g1 -> %r0
    st %r0 -> [fp-4]
 
@@ -342,17 +392,17 @@ f22:
    cmp %r0, %r1
    bge f23
 
-                            / If (a[j] > a[j+1])
+                            <font color=blue>/ If (a[j] > a[j+1])</font>
 
-   ld [fp-4] -> %r0         / First put a[j] into register r0
+   ld [fp-4] -> %r0         <font color=blue>/ First put a[j] into register r0</font>
    mov #4 -> %r1
    mul %r0, %r1 -> %r0
    ld [fp+12] -> %r1
    add %r0, %r1 -> %r0
    ld [r0] -> %r0
 
-   ld [fp-4] -> %r1         / Now put a[j+1] into register r1
-   add %r1, %g1 -> %r1      / without touching r0
+   ld [fp-4] -> %r1         <font color=blue>/ Now put a[j+1] into register r1</font>
+   add %r1, %g1 -> %r1      <font color=blue>/ without touching r0</font>
    mov #4 -> %r2           
    mul %r1, %r2 -> %r1
    ld [fp+12] -> %r2
@@ -362,7 +412,7 @@ f22:
    cmp %r0, %r1
    ble i1
 
-   ld [fp-4] -> %r0         / tmp = a[j]
+   ld [fp-4] -> %r0         <font color=blue>/ tmp = a[j]</font>
    mov #4 -> %r1
    mul %r0, %r1 -> %r0
    ld [fp+12] -> %r1
@@ -370,21 +420,21 @@ f22:
    ld [r0] -> %r0
    st %r0 -> [fp]
 
-   ld [fp-4] -> %r0         / a[j] = a[j+1]
-   add %r0, %g1 -> %r0      / Load a[j+1] into r0
+   ld [fp-4] -> %r0         <font color=blue>/ a[j] = a[j+1]</font>
+   add %r0, %g1 -> %r0      <font color=blue>/ Load a[j+1] into r0</font>
    mov #4 -> %r1
    mul %r0, %r1 -> %r0
    ld [fp+12] -> %r1
    add %r0, %r1 -> %r0
    ld [r0] -> %r0
-   ld [fp-4] -> %r1         / Load &(a[j]) into r1
+   ld [fp-4] -> %r1         <font color=blue>/ Load &(a[j]) into r1</font>
    mov #4 -> %r2            
    mul %r1, %r2 -> %r1
    ld [fp+12] -> %r2
    add %r1, %r2 -> %r1
-   st %r0 -> [r1]           / Store r0 into a[j]
+   st %r0 -> [r1]           <font color=blue>/ Store r0 into a[j]</font>
 
-   ld [fp] -> %r0           / a[j+1]  = tmp
+   ld [fp] -> %r0           <font color=blue>/ a[j+1]  = tmp</font>
    ld [fp-4] -> %r1        
    add %r1, %g1 -> %r1    
    mov #4 -> %r2            
@@ -393,12 +443,12 @@ f22:
    add %r1, %r2 -> %r1
    st %r0 -> [r1]
 
-i1:                         / End of if statement
+i1:                         <font color=blue>/ End of if statement</font>
 
-   b f21                    / End of for loop #2  
+   b f21                    <font color=blue>/ End of for loop #2  </font>
 f23:
 
-   b f11                    / End of for loop #1
+   b f11                    <font color=blue>/ End of for loop #1</font>
 f13:
    ld ++[sp] -> %r2
    ret
@@ -406,7 +456,7 @@ f13:
 main:
    push #16
 
-   mov #-1 -> %r2       / This is just to show spilling
+   mov #-1 -> %r2       <font color=blue>/ This is just to show spilling</font>
 
    mov #6 -> %r0
    st %r0 -> [fp-12]
@@ -428,13 +478,92 @@ main:
    ret
 </pre>
 
-The execution of this with jas is a bit cumbersome -- it goes blazingly
+The execution of this with jassem is a bit cumbersome -- it goes blazingly
 fast on my linux box, but not on my windows box -- this is not the
 most efficient tcl/tk code in the world.  Oh well.  As always, make
 sure you understand both the translation to assembly code, and 
 the workings of the assembler.  Yes, this code is grossly inefficient
 and can be made world's faster with the judicious use of some registers.
 
+
+<hr>
+<h1>Tail Recursion - Where Compiler Writers Bail Out Functional Programmers</h1>
+
+<p>I will only go over this in class if there is time.  If not, only read this
+if you are interested.    Since you are not supposed to optimize code, you are not
+supposed to implement things like this on homeworks or exams.  
+<p>
+Suppose you write a procedure that is recursive, and has the feature that the
+recursive call is returned.  For example, suppose you decided to write that
+recursive factorial function as in 
+<b><a href=fact5.c>fact5.c</a></b>:
+
+<p><center><table border=3 cellpadding=3><td><pre>
+int fact(int i, int val_so_far)
+{
+  if (i == 0) return val_so_far;
+  return fact(i-1, val_so_far * i);
+}
+
+int main()
+{
+  int i;
+
+  i = fact(5, 1);
+}
+</pre></td></table></center><p>
+
+Since the recursive call is simply returned, there is a tricky compiler optimization called
+"tail recursion."  What it does is the following:
+
+<UL>
+<LI> Instead of pushing the arguments onto the stack, it changes them in place.  Here,
+it would replace 
+<b>val_so_far</b> with 
+<b>(val_so_far * i)</b>, and then it would replace <b>i</b> with <b>(i-1)</b>.
+<p>
+<LI> Instead of making a recursive <b>jsr</b> call, it makes an unconditional branch back
+to <b>fact()</b>.
+</UL>
+
+The end result is that you reuse the stack frame for recursive calls, saving you time and
+memory.  You get the recursion without the costs of recursion.  Here's
+<b><a href=fact5.jas>fact5.jas</a></b>:
+
+<p><center><table border=3 cellpadding=3><td><pre>
+fact:
+  ld [fp+12] -&gt; %r0      <font color=blue>/ This is the base case.</font>
+  cmp %r0, %g0           <font color=blue>/ If i == 0, return val_so_far</font>
+  bne l1
+  ld [fp+16] -&gt; %r0
+  ret
+
+l1:
+  ld [fp+16] -&gt; %r0      <font color=blue>/ Replace val_so_far</font>
+  ld [fp+12] -&gt; %r1      <font color=blue>/ with (val_so_far * i)</font>
+  mul %r0, %r1 -&gt; %r0
+  st %r0 -&gt; [fp+16]
+
+  ld [fp+12] -&gt; %r0      <font color=blue>/ Replace i with i-1</font>
+  add %r0, %gm1 -&gt; %r0
+  st %r0 -&gt; [fp+12]
+
+  b fact                 <font color=blue>/ Branch back instead of doing recursion.</font>
+
+main:
+  push #4
+  st %g1 -&gt; [sp]--
+  mov #5 -&gt; %r0
+  st %r0 -&gt; [sp]--
+  jsr fact
+  pop #8
+  st %r0 -&gt; [fp]
+  ret
+</pre></td></table></center><p>
+
+That's a neat optimization, isn't it?  It's one that functional programmers love, because
+it allows them to write their tricky, modification-free functional programs and claim that
+they can run as fast as normal programs.  
 
 <hr>
 <h1>Delay Slots</h1>
@@ -447,7 +576,7 @@ assume that there is no delay slot.  This is just for your own knowledge.</b>
 
 <p>Reading assembler from a random machine can be difficult, but usually
 you can figure out how its assembler maps into the one defined in this
-class.  One point of confusion which is probably unique to our Sparc
+class.  One point of confusion which arose when our department had Sun Sparc 
 processors is the <i>delay slot</i>.  There is a technique for speeding
 up processors called "pipelining" which means that the CPU doesn't finish
 executing the current instruction before it starts executing the next
@@ -458,7 +587,7 @@ should not be executed.  But on a pipelined processor, by the time the
 instruction is done, the next instruction has already been partially
 executed.  
 
-<p>The solution on our Sparcs is that the instruction <i>after</i> 
+<p>The solution on Sparcs is that the instruction <i>after</i> 
 the <b>jsr</b>,
 <b>ret</b> and <b>b</b> is executed, and then control goes to the changed value
 of the <b>pc</b>.  This instruction -- the one after the <b>jsr</b>,
@@ -513,4 +642,3 @@ a:
   add %r0, %g1 -> %r0          / Put b(i+1)+1 into r0 -- this gets executed
                                  before the return actually occurs.
 </pre>
-

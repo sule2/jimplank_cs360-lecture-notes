@@ -1,0 +1,39 @@
+a:
+  push #8                      / Allocate i and j on the stack
+  
+  st %g0 -> [fp-4]             / Set j to zero
+
+  st %g1 -> [fp]               / Initialize the for loop  (S1)
+  b l2
+
+l1:
+
+  ld [fp] -> %r0               / Do i++ (S2)
+  add %r0, %g1 -> %r0
+  st %r0 -> [fp]
+
+l2:
+  ld [fp] -> %r0               / Perform the test, and branch on the negation
+  ld [fp+12] -> %r1
+  cmp %r0, %r1
+  bgt l3
+
+  ld [fp-4] -> %r0             / Do j += i  (S3)
+  ld [fp] -> %r1
+  add %r0, %r1 -> %r0
+  st %r0 -> [fp-4]
+  b l1
+
+l3:                           
+  ld [fp-4] -> %r0             / return j (S4)
+  ret
+
+main:
+  push #4
+
+  mov #4 -> %r0
+  st %r0 -> [sp]--
+  jsr a
+  pop #4
+  st %r0 -> [fp]
+  ret
