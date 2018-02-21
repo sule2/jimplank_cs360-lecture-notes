@@ -1,0 +1,117 @@
+bsort:
+   push #12                 / i=fp-8, j=fp-4, tmp=fp
+   st %r2 -> [sp]--         / Spill r2
+   
+                            / For loop #1: labels f11, f12, f13
+   ld [fp+16] -> %r0        / i = size-1
+   add %r0, %gm1 -> %r0
+   st %r0 -> [fp-8]
+   b f12
+
+f11:
+   ld [fp-8] -> %r0         / i--
+   add %r0, %gm1 -> %r0
+   st %r0 -> [fp-8]
+
+f12:
+   ld [fp-8] -> %r0         / i > 0
+   cmp %r0, %g0
+   ble f13
+
+                            / For loop #2: labels f21, f22, f23
+   st %g0 -> [fp-4]         / j = 0
+   b f22
+
+f21:
+   ld [fp-4] -> %r0         / j++
+   add %r0, %g1 -> %r0
+   st %r0 -> [fp-4]
+
+f22:
+   ld [fp-4] -> %r0
+   ld [fp-8] -> %r1
+   cmp %r0, %r1
+   bge f23
+
+                            / If (a[j] > a[j+1])
+
+   ld [fp-4] -> %r0         / First put a[j] into register r0
+   mov #4 -> %r1
+   mul %r0, %r1 -> %r0
+   ld [fp+12] -> %r1
+   add %r0, %r1 -> %r0
+   ld [r0] -> %r0
+
+   ld [fp-4] -> %r1         / Now put a[j+1] into register r1
+   add %r1, %g1 -> %r1      / without touching r0
+   mov #4 -> %r2           
+   mul %r1, %r2 -> %r1
+   ld [fp+12] -> %r2
+   add %r1, %r2 -> %r1
+   ld [r1] -> %r1
+
+   cmp %r0, %r1
+   ble i1
+
+   ld [fp-4] -> %r0         / tmp = a[j]
+   mov #4 -> %r1
+   mul %r0, %r1 -> %r0
+   ld [fp+12] -> %r1
+   add %r0, %r1 -> %r0
+   ld [r0] -> %r0
+   st %r0 -> [fp]
+
+   ld [fp-4] -> %r0         / a[j] = a[j+1]
+   add %r0, %g1 -> %r0      / Load a[j+1] into r0
+   mov #4 -> %r1
+   mul %r0, %r1 -> %r0
+   ld [fp+12] -> %r1
+   add %r0, %r1 -> %r0
+   ld [r0] -> %r0
+   ld [fp-4] -> %r1         / Load &(a[j]) into r1
+   mov #4 -> %r2            
+   mul %r1, %r2 -> %r1
+   ld [fp+12] -> %r2
+   add %r1, %r2 -> %r1
+   st %r0 -> [r1]           / Store r0 into a[j]
+
+   ld [fp] -> %r0           / a[j+1]  = tmp
+   ld [fp-4] -> %r1        
+   add %r1, %g1 -> %r1    
+   mov #4 -> %r2            
+   mul %r1, %r2 -> %r1
+   ld [fp+12] -> %r2
+   add %r1, %r2 -> %r1
+   st %r0 -> [r1]
+
+i1:                         / End of if statement
+
+   b f21                    / End of for loop #2  
+f23:
+
+   b f11                    / End of for loop #1
+f13:
+   ld ++[sp] -> %r2
+   ret
+
+main:
+   push #16
+
+   mov #6 -> %r0
+   st %r0 -> [fp-12]
+   mov #1 -> %r0
+   st %r0 -> [fp-8]
+   mov #4 -> %r0
+   st %r0 -> [fp-4]
+   mov #2 -> %r0
+   st %r0 -> [fp]
+
+   mov #4 -> %r0
+   st %r0 -> [sp]--
+   mov #12 -> %r0
+   sub %fp, %r0 -> %r0
+   st %r0 -> [sp]--
+   jsr bsort
+   pop #8
+
+   ret

@@ -1,0 +1,71 @@
+<title>Mail about Assembler #2</title>
+<body bgcolor=ffffff>
+<pre>
+
+>Date: Tue, 7 Oct 1997 17:43:52 -0400 (EDT)
+>To: Jim Plank <plank@cs.utk.edu>
+>Subject: One more question on Assemble
+>
+>When I transform the following
+>   x = x + y*z + 10;
+>does the order of calculation counts ? I mean I can have many
+>(really many !) different but equivalent ways to do this, f.g.
+> Way 1:
+>     mv #10 -> %r0
+>     ld [fp] -> %r1   /  assume [fp] is z
+>     ld [fp-4] -> %r2    / assume [fp-4] is y
+>     mul %r1, %r2 -> %r1
+>     add %r0, %r1 -> %r0
+>     ld [fp-8] -> %r1       /assume [fp-8] is x
+>     add %r0, %r1 -> %r0
+>     st %r0 -> [fp-8]
+>
+>Way 2, do multiplication of y and z first, then load and add 10
+>   then load and add x
+>
+>Even for y*z, I can load either z first or y first. Do I have to
+>load z first ?
+>
+
+You can do it in any order you want as long as you retain C's
+semantics.  For that reason, I think the following is probably 
+best:
+
+     ld [fp-8] -> %r0
+     ld [fp-4] -> %r1
+     ld [fp] -> %r2
+     mul %r1, %r2 -> %r1
+     add %r0, %r1 -> %r0
+     mv #10 -> %r1
+     add %r0, %r1 -> %r0
+     st %r0 -> [fp-8]
+     
+Note, this assumes that you are allowed to mess with r2 without saving
+it first.  If this were in a procedure like the following:
+
+int a(int x, int y, int z)
+{
+  x = x + y*z + 10;
+  return x;
+}
+
+Then you'd get something like the following:
+
+     st %r2 -> [sp]--;
+
+     ld [fp+12] -> %r0
+     ld [fp+16] -> %r1
+     ld [fp+20] -> %r2
+     mul %r1, %r2 -> %r1
+     add %r0, %r1 -> %r0
+     mv #10 -> %r1
+     add %r0, %r1 -> %r0
+     st %r0 -> [fp+12]
+
+     ld [fp+12] -> %r0
+     ld ++[sp] -> %r2
+     ret
+
+Jim Plank
+
+

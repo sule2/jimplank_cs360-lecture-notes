@@ -21,3 +21,4 @@ Lecture notes and example programs for Dr. Plank's CS360 class at the University
 - [Lecture #14: Assembler Lecture #1: Introduction; Global and local variables](Assembler1/README.md)
 - [Lecture #15: Assembler Lecture #2: Procedure calls and spilling](Assembler2/README.md)
 - [Lecture #16: Assembler Lecture #3: Pointers](Assembler3/README.md)
+- [Lecture #17: Assembler Lecture #4: Conditionals](Assembler4/README.md)

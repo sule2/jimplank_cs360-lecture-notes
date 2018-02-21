@@ -1,0 +1,65 @@
+<title>Mail about Assembler</title>
+<body bgcolor=ffffff>
+<pre>
+From: Jim Plank <plank@cs.utk.edu>
+Date: Tue, 7 Oct 1997 13:31:42 -0400
+To: cs360 class
+
+Here is a question that I just answered.  I figure perhaps you all might
+like to see it in case you are having similar questions:
+
+> 
+> When I do:
+>   st %r0 -> [fp]
+> 
+> will the %r0 be freed after this ?
+
+No, it doesn't get "freed".  It is a register, and will hold
+its value until that value is altered.
+
+> In your example, you have many things like (f.g. the second
+> example of Assembler Lecture #2):
+> 
+>     st  %r0 -> [fp]
+>     ld [fp] -> %r0
+> 
+> It seems to me this is redundant if %r0 is not freed.
+
+Absolutely it is redundant.  However, compilers produce code
+like this because they convert C into assembler in a line
+by line bases.  When they optimize, they can get rid of 
+redundancies like that.
+
+> Now let's say I have a segment of C like:
+>    i=10;
+>    j=10;
+> 
+> Do I need to transform them into:
+>    mv #10 -> %r0
+>    st %r0 -> [fp]
+> 
+>    mv #10 -> %r0
+>    st %r0 -> [fp-4]
+
+Yes
+
+> or just
+> 
+>    mv #10 -> %r0
+>    st %r0 -> [fp]
+>    st  %r0  -> [fp-4]
+> ?
+> 
+> Do you think for the latter case, I did optimization ?
+
+In the latter case, you did optimization.
+
+
+-- 
+Jim Plank                     Assistant Professor, Computer Science
+plank@cs.utk.edu                            University of Tennessee
+http://www.cs.utk.edu/~plank                         107 Ayres Hall
+office: 423-974-4397, fax: 423-974-4404         Knoxville, TN 37996
+
+
+</pre>
