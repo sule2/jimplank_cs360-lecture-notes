@@ -1,17 +1,17 @@
 a:
    push #4
 
-   ld [fp+12] -> %r0
+   ld [fp+12] -> %r0     / i = p[0]
    ld [r0] -> %r0
    st %r0 -> [fp]
 
-   ld [fp+12] -> %r0
+   ld [fp+12] -> %r0     / i = p[3]
    mov #12 -> %r1
    add %r0, %r1 -> %r0
    ld [r0] -> %r0
    st %r0 -> [fp]
 
-   ld [fp] -> %r0
+   ld [fp] -> %r0        / i = p[i]
    mov #4 -> %r1
    mul %r0, %r1 -> %r0
    ld [fp+12] -> %r1

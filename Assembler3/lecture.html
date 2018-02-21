@@ -2,12 +2,12 @@
 <body bgcolor=ffffff>
 <h1>CS360 Lecture notes -- Assembler Lecture #3: Pointers</h1>
 <UL>
-<LI><a href=http://www.cs.utk.edu/~plank>James S. Plank</a>
+<LI><a href=http://web.eecs.utk.edu/~plank>James S. Plank</a>
 <LI>Directory: <b>/home/plank/cs360/notes/Assembler3</b>
 <LI>Lecture notes:
-    <a href=http://www.cs.utk.edu/~plank/plank/classes/cs360/360/notes/Assembler3/lecture.html>
+    <a href=http://web.eecs.utk.edu/~plank/plank/classes/cs360/360/notes/Assembler3/lecture.html>
     <b>
-  http://www.cs.utk.edu/~plank/plank/classes/cs360/360/notes/Assembler3/lecture.html
+  http://web.eecs.utk.edu/~plank/plank/classes/cs360/360/notes/Assembler3/lecture.html
 </b></a>
 <LI> Original notes are from the 1990's.
 <LI> Last modification: 
@@ -19,7 +19,7 @@ Wed Feb 27 14:05:51 EST 2013
 
 Pointers require some care -- my advice with pointers is to go 
 slowly, and think precisely.  As with the exercises on pointers and C code, it is often
-helpful to write out the addresses of everything that you can.  That helps figure out
+helpful to write out the addresses of everything that you can.  That helps you figure out
 memory and it helps you write code.
 
 <hr>
@@ -41,10 +41,10 @@ int main()
 Let's list everything that we know about these variables:
 
 <UL>
-<LI> There are three local variables, which will be accesses from the frame pointer:
-<LI> <b>i</b> will be at <b>fp-8</b>.  Therefore, <b>&amp;i</b> equals <b>fp-8</b> and <b>i</b>'s 
+<LI> There are three local variables, which will be accessed from the frame pointer:
+<LI> <b>i</b> will be at memory location <b>(fp-8)</b>.  Therefore, <b>&amp;i</b> equals <b>(fp-8)</b> and <b>i</b>'s 
 value will be loaded and stored at <b>[fp-8]</b>.
-<LI> Similarly, <b>&amp;j</b> equals <b>fp-4</b> and <b>j</b>'s 
+<LI> Similarly, <b>&amp;j</b> equals <b>(fp-4)</b> and <b>j</b>'s 
 value will be loaded and stored at <b>[fp-4]</b>.
 <LI> Finally, <b>&amp;jp</b> equals <b>fp</b> and <b>jp</b>'s 
 value will be loaded and stored at <b>[fp]</b>.  If you want <b>*jp</b>, you need
@@ -114,9 +114,9 @@ int main()
 Again, the best thing to do is figure out every variable's address and value:
 
 <UL>
-<LI> In <b>main()</b>, <b>&amp;i</b> is <b>fp-4</b>, and <b>i</b>'s value is <b>[fp-4]</b>.
+<LI> In <b>main()</b>, <b>&amp;i</b> is <b>(fp-4)</b>, and <b>i</b>'s value is <b>[fp-4]</b>.
 <LI> In <b>main()</b>, <b>&amp;j</b> is <b>fp</b>, and <b>j</b>'s value is <b>[fp]</b>.
-<LI> In <b>a()</b>, <b>&amp;p</b> is <b>fp+12</b>, and <b>p</b>'s value is <b>[fp+12]</b>.
+<LI> In <b>a()</b>, <b>&amp;p</b> is <b>(fp+12)</b>, and <b>p</b>'s value is <b>[fp+12]</b>.
 <LI> To get <b>*p</b>, you need to load <b>[fp+12]</b> into a register and dereference
 the register.
 </UL>
@@ -126,18 +126,18 @@ Here's the assembler (in
 
 <p><center><table border=3 cellpadding=3><td><pre>
 a:
-    ld [fp+12] -&gt; %r0      / get p's value
-    ld [r0] -&gt; %r0         / dereference it
+    ld [fp+12] -&gt; %r0      <font color=blue>/ get p's value</font>
+    ld [r0] -&gt; %r0         <font color=blue>/ dereference it</font>
     ret
 
 main:
     push #8
 
-    mov #15 -&gt; %r0         / j = 15
+    mov #15 -&gt; %r0         <font color=blue>/ j = 15</font>
     st %r0 -&gt; [fp]
 
-    st %fp -&gt; [sp]--       / push &j on the stack 
-    jsr a                  / and call a()
+    st %fp -&gt; [sp]--       <font color=blue>/ push &j on the stack </font>
+    jsr a                  <font color=blue>/ and call a()</font>
     pop #4
     st %r0 -&gt; [fp-4]
 
@@ -190,7 +190,7 @@ addresses and values so that it's easier to come up with the assembler:
 
 <UL>
 <LI> <b>&amp;i</b> is <b>fp</b>, and <b>i</b>'s value is <b>[fp]</b>.
-<LI> <b>&amp;p</b> is <b>fp+12</b>, and <b>p</b>'s value is <b>[fp+12]</b>.
+<LI> <b>&amp;p</b> is <b>(fp+12)</b>, and <b>p</b>'s value is <b>[fp+12]</b>.
 <LI> To get <b>p[0]</b>, we need to load <b>[fp+12]</b> and dereference it.
 <LI> To get <b>p[3]</b>, we need to load <b>[fp+12]</b>, then add 12 to it (3 * the
      size of an integer), and then dereference the result.
@@ -206,7 +206,7 @@ And then dereference it.  Let's go ahead and put the dereferencing into the equa
 <b>[ [fp+12]</b> + 4 * <b>[fp] ]</b>
 </center>
 <p>
-And let's turn that into a tree, just like we did last lecture with equations:
+And let's turn that into a tree, just like we did in the last lecture with equations:
 <p><center><table border=3><td><img src=Pointer-3-1.jpg></td></table></center><p>
 I've labeled the nodes so that you can see how we construct <b>&amp;(p[i])</b>
 and then we dereference it.
@@ -219,17 +219,17 @@ Here's the assembler (in
 a:
    push #4
 
-   ld [fp+12] -&gt; %r0
+   ld [fp+12] -&gt; %r0     <font color=blue>/ i = p[0]</font>
    ld [r0] -&gt; %r0
    st %r0 -&gt; [fp]
 
-   ld [fp+12] -&gt; %r0
+   ld [fp+12] -&gt; %r0     <font color=blue>/ i = p[3]</font>
    mov #12 -&gt; %r1
    add %r0, %r1 -&gt; %r0
    ld [r0] -&gt; %r0
    st %r0 -&gt; [fp]
 
-   ld [fp] -&gt; %r0
+   ld [fp] -&gt; %r0        <font color=blue>/ i = p[i]</font>
    mov #4 -&gt; %r1
    mul %r0, %r1 -&gt; %r0
    ld [fp+12] -&gt; %r1
@@ -255,15 +255,15 @@ call <b>push #20</b> to allocate the five integers of <b>array</b>.  After that,
 compiler knows that:
 
 <UL>
-<LI> <b>&amp;(array[0])</b> is <b>fp-16</b>, and <b>array[0]</b>'s value is <b>[fp-16]</b>.
-<LI> <b>&amp;(array[1])</b> is <b>fp-12</b>, and <b>array[1]</b>'s value is <b>[fp-12]</b>.
-<LI> <b>&amp;(array[2])</b> is <b>fp-8</b>, and <b>array[2]</b>'s value is <b>[fp-8]</b>.
-<LI> <b>&amp;(array[3])</b> is <b>fp-4</b>, and <b>array[3]</b>'s value is <b>[fp-4]</b>.
+<LI> <b>&amp;(array[0])</b> is <b>(fp-16)</b>, and <b>array[0]</b>'s value is <b>[fp-16]</b>.
+<LI> <b>&amp;(array[1])</b> is <b>(fp-12)</b>, and <b>array[1]</b>'s value is <b>[fp-12]</b>.
+<LI> <b>&amp;(array[2])</b> is <b>(fp-8)</b>, and <b>array[2]</b>'s value is <b>[fp-8]</b>.
+<LI> <b>&amp;(array[3])</b> is <b>(fp-4)</b>, and <b>array[3]</b>'s value is <b>[fp-4]</b>.
 <LI> <b>&amp;(array[4])</b> is <b>fp</b>, and <b>array[4]</b>'s value is <b>[fp]</b>.
 </UL>
 
 You'll note -- there is no memory set aside for "array."  The compiler knows that 
-"array" is equal to <b>fp-16</b> -- it is a pointer to <b>array[0]</b>.
+"array" is equal to <b>(fp-16)</b> -- it is a pointer to <b>array[0]</b>.
 <p>
 Armed with this knowledge, setting the elements of <b>array</b> is straightforward. 
 Calling <b>a(array)</b> is a little trickier, but we'll go over it.  Here's 
@@ -273,7 +273,7 @@ the rest of <b><a href=pointer3.jas>pointer3.jas</a></b>:
 main:
    push #20
 
-   mov #10 -&gt; %r0        / Store the values of array
+   mov #10 -&gt; %r0        <font color=blue>/ Store the values of array</font>
    st %r0 -&gt; [fp-16]
    mov #11 -&gt; %r0
    st %r0 -&gt; [fp-12]
@@ -284,15 +284,15 @@ main:
    mov #15 -&gt; %r0
    st %r0 -&gt; [fp]
 
-   mov #-16 -&gt; %r0        / Push array onto the stack
+   mov #-16 -&gt; %r0        <font color=blue>/ Push array onto the stack</font>
    add %fp, %r0 -&gt; %r0
    st %r0 -&gt; [sp]--     
-   jsr a                  / call a
+   jsr a                  <font color=blue>/ call a</font>
    pop #4
    ret
 </pre></td></table></center><p>
 
-To call <b>a(array)</b>, we have to calculate <b>fp-16</b> and push that onto the 
+To call <b>a(array)</b>, we have to calculate <b>(fp-16)</b> and push that onto the 
 stack. That's done in three lines starting with "<b>mov #-16 -> %r0</b>".  
 The rest is straightforward.
 
@@ -381,7 +381,7 @@ main:
 The implementations of <b>a()</b> and <b>main()</b> are straightforward, so I won't
 bother commenting on them.  In <b>b()</b>, we allocate the 20 bytes for <b>p</b> on 
 the stack, and we know that <b>p</b> points to element <b>p[0]</b>, which is at
-address <b>fp-16</b>.  Thus, to access <b>p[i]</b> we need to do:
+address <b>(fp-16)</b>.  Thus, to access <b>p[i]</b> we need to do:
 <p>
 <center>
 <b>[ (fp-16) + 4*[fp+12] ]</b>
@@ -428,8 +428,8 @@ Since we didn't initialize the values of <b>p</b>, they are leftover from the pr
 call to <b>a</b>.  Actually, who really knows what <b>p[0]</b> would be, since
 <b>jassem</b> assumes that memory is all zeros when it starts up.
 <p>
-So <b>b()</b> will return <b>p[2]</b>, which is 0xfff448, and the answer to the question 
-is that at the end of <b>main()</b>, <b>x</b> will have the value 0xfff448.
+So <b>b()</b> will return <b>p[2]</b>, which is <tt>0xfff448</tt>, and the answer to the question 
+is that at the end of <b>main()</b>, <b>x</b> will have the value <tt>0xfff448</tt>.
 <hr>
 <h2>Some more practice</h2>
 
@@ -458,7 +458,7 @@ We'll start with "push 20", and we can locate our variables as follows:
 Note that this means:
 <UL>
 <LI> <b>&i</b> will be <b>fp</b>.
-<LI> <b>a2</b> will be <b>fp-12</b>.
+<LI> <b>a2</b> will be <b>(fp-12)</b>.
 <LI> <b>*a</b> will be <b>[[fp-16]]</b>.  You can't do that in
    assembler.  Instead you will load <b>[fp-16]</b> into a register and 
    dereference that register.
@@ -474,24 +474,24 @@ Here's the assembler
 
 <p><center><table border=3 cellpadding=3><td><pre>
 main:
-  push #20              / Allocate locals and spill r2
+  push #20              <font color=blue>/ Allocate locals and spill r2</font>
   st %r2 -&gt; [sp]--
 
-  mov #6 -&gt; %r0         / i = 6
+  mov #6 -&gt; %r0         <font color=blue>/ i = 6</font>
   st %r0 -&gt; [fp]
 
-  st %fp -&gt; [fp-16]     / a = &i
+  st %fp -&gt; [fp-16]     <font color=blue>/ a = &i</font>
   
-  mov #2 -&gt; %r0         / a2[1] = i+2
+  mov #2 -&gt; %r0         <font color=blue>/ a2[1] = i+2</font>
   ld [fp] -&gt; %r1
   add %r0, %r1 -&gt; %r0
   st %r0 -&gt; [fp-8]
 
-  mov #2 -&gt; %r0         / *a = 2
+  mov #2 -&gt; %r0         <font color=blue>/ *a = 2</font>
   ld [fp-16] -&gt; %r1
   st %r0 -&gt; [r1]
 
-  ld [fp] -&gt; %r0        / *(a+i) = i+5
+  ld [fp] -&gt; %r0        <font color=blue>/ *(a+i) = i+5</font>
   mov #5 -&gt; %r1
   add %r0, %r1 -&gt; %r0   
   ld [fp] -&gt; %r1  
@@ -502,7 +502,7 @@ main:
   add %fp, %r1 -&gt; %r1
   st %r0 -&gt; [r1]
   
-  ld ++[sp] -&gt; %r2      / Unspill and exit
+  ld ++[sp] -&gt; %r2      <font color=blue>/ Unspill and exit</font>
   ret
 </pre></td></table></center><p>
 
@@ -557,15 +557,15 @@ rather than left-to-right.  We need to use <b>r2</b>.  It's in
 
 <p><center><table border=3 cellpadding=3><td valign=top><pre>
 x:
-   st %r2 -&gt; [sp]--        / Spill r2
+   st %r2 -&gt; [sp]--        <font color=blue>/ Spill r2</font>
 
-   ld [fp+20] -&gt; %r0       / Do the right part of the tree.
+   ld [fp+20] -&gt; %r0       <font color=blue>/ Do the right part of the tree.</font>
    mov #2 -&gt; %r1
    sub %r0, %r1 -&gt; %r0
    mov #4 -&gt; %r1
    mul %r0, %r1 -&gt; %r0
    
-   mov #2 -&gt; %r1           / Do the left part of the tree
+   mov #2 -&gt; %r1           <font color=blue>/ Do the left part of the tree</font>
    ld [fp+16] -&gt; %r2
    add %r1, %r2 -&gt; %r1
    mov #4 -&gt; %r2
@@ -574,16 +574,16 @@ x:
    add %r1, %r2 -&gt; %r1
    ld [r1] -&gt; %r1
 
-   add %r0, %r1 -&gt; %r0     / Add them up 
+   add %r0, %r1 -&gt; %r0     <font color=blue>/ Add them up </font>
    ld [r0] -&gt; %r0
 
-   ld ++[sp] -&gt; %r2        / Unspill r2
+   ld ++[sp] -&gt; %r2        <font color=blue>/ Unspill r2</font>
    ret
 </pre></td><td valign=top><pre>
 main:
    push #52
 
-   st %g1 -&gt; [fp-48]    / Do a[0] through c[2].
+   st %g1 -&gt; [fp-48]    <font color=blue>/ Do a[0] through c[2].</font>
    mov #2 -&gt; %r0
    st %r0 -&gt; [fp-44]
    mov #3 -&gt; %r0
@@ -601,26 +601,26 @@ main:
    mov #9 -&gt; %r0
    st %r0 -&gt; [fp-16]
 
-   mov #-48 -&gt; %r0        / d[0] = a
+   mov #-48 -&gt; %r0        <font color=blue>/ d[0] = a</font>
    add %fp, %r0 -&gt; %r0
    st %r0 -&gt; [fp-12]
 
-   mov #-36 -&gt; %r0        / d[1] = b
+   mov #-36 -&gt; %r0        <font color=blue>/ d[1] = b</font>
    add %fp, %r0 -&gt; %r0
    st %r0 -&gt; [fp-8]
 
-   mov #-24 -&gt; %r0        / d[2] = c
+   mov #-24 -&gt; %r0        <font color=blue>/ d[2] = c</font>
    add %fp, %r0 -&gt; %r0
    st %r0 -&gt; [fp-4]
 
-   mov #3 -&gt; %r0          / Push the arguments in reverse order
+   mov #3 -&gt; %r0          <font color=blue>/ Push the arguments in reverse order</font>
    st %r0 -&gt; [sp]--
    st %g0 -&gt; [sp]--
    mov #-12 -&gt; %r0        
    add %fp, %r0 -&gt; %r0
    st %r0 -&gt; [sp]--
 
-   jsr x                     / call x and set e
+   jsr x                     <font color=blue>/ call x and set e</font>
    pop #12
    st %r0 -&gt; [fp]
    ret
@@ -636,7 +636,7 @@ I've labeled every byte of the stack for you:
 <p><center><table border=3><td><img src=Pointer-6-2.jpg></td></table></center><p>
 
 I don't think there's much point in putting more screen shots here -- instead, step 
-through the code so that you can see how the element in 0xfff434 (d[2][1]) gets returned.
+through the code so that you can see how the element in <tt>0xfff434</tt> (d[2][1]) gets returned.
 <p>
 
 <hr>
