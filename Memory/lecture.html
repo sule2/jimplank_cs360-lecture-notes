@@ -46,82 +46,102 @@ pointer with a value of 0, you will get a segmentation violation.
 This is Unix's way of telling you that that memory location is
 illegal.
 
-<p>For example, the following code will generate a segmentation violation:
+<p>For example, the following program will generate a segmentation violation.
+(<b><a href=segfault.c>segfault.c</a></b>):
 
-<pre>
-main()
+<p><center><table border=3 cellpadding=3><td><pre>
+int main()
 {
   char *s;
   char c;
 
   s = (char *) 0;
-  c = *s;
+  c = *s;           <font color=blue>/* The segmentation violation happens here. */</font>
+  return 0;
 }
+</pre></td></table></center><p>
+
+<pre>
+UNIX> <font color=darkred><b>./segfault</b></font>
+Segmentation fault
+UNIX> <font color=darkred><b></b></font>
 </pre>
 
-As it turns out, there are 4 regions of memory that are legal.  They are:
+There are many regions of memory that are set up to be legal, when you run your
+program.  They are set up by the operating system, with the help of the hardware.
+I will talk about four of them here.  While there are standard Unix names for 
+them (which I'll tell you), I think that they are confusing, so I use my own:
 <OL>
-<LI><b>The code (or "text")</b>: These are the instructions of your program
-<LI><b>The globals</b>: These are your global variables
-<LI><b>The heap</b>: This is memory that you get from <b>malloc()</b>.
-<LI><b>The stack</b>: This contains your local variables and procedure
-                        arguments.
+<LI><b>The code</b>: This memory region holds the instructions of your program.
+The standard Unix name for this is "text".
+<LI><b>The globals</b>: These are your global variables.  Standard Unix lingo splits the
+globals into two parts: "Data", which holds global variables that have been initialized in
+the program; and "BSS", which holds global variables that have not been initialized.
+<LI><b>The heap</b>: This is memory that you get from <b>malloc()</b> (or <b>new</b> in C++).
+<LI><b>The stack</b>: This contains your local variables and procedure arguments.
 </OL>
 
 If we view memory as a big array, the regions (or ``segments'') look
 as follows:
 
 <pre>
-     |--------------| 0
+     |--------------| 0x00000000
      |              |
      |   void       |
      |              |
-     |--------------| 0x10000
+     |--------------| 
      |              |
      |  code        |
      |              |
      |--------------|
      |  void        |
-     |--------------| 0x20000
+     |--------------| 
      |              |
      |  globals     |
      |              |
      |--------------|
+     |  void        |
+     |--------------|
      |              |
      |  heap        |
-     |              |
-     ||||||||||||||||
-     |vvvvvvvvvvvvvv|
-     |              |
-     |              |
+     |              |  You can make the heap grow with the sbrk() or mmap() system call.
+     |--------------|
      |  void        |
-     |              |
-     |              |
-     |^^^^^^^^^^^^^^|
-     ||||||||||||||||
+     |--------------|
      |              |
      |  stack       |
-     |              | 0xefffffff
+     |              | 
      |--------------|
+     |  void        |
+     |--------------| 0xffffffff
 </pre>
 
-Note, the heap grows down as you make more <b>malloc()</b> calls, and the
-stack goes up as you make nested procedure calls.
+Note, the heap grows down as you make more <b>malloc()</b> calls and your program
+asks the operating system for more memory.  As we have seen in the Assembly code
+lecture notes, the stack grows "upward", by subtracting values from the stack and frame
+pointers.  In reality, the stack is a fixed size (typically 8 MB).  You could make it
+grow by using <b>mmap()</b> properly, but that is not what happens by default.
 
 <hr>
 <h1>Paging</h1>
 
-On the hydra machines, memory is broken up into 8192-byte chunks.  
-These are called pages.  On some machines, pages are 4096 bytes -- this
-is something set by the hardware.
+On all machines, memory is broken up into fixed chunks called pages.
+Pages are typically 4096 or 8192 bytes long, but other sizes have been supported
+by other machines.  You can find out your machine's page size by calling
+the <b>getpagesize()</b> system call.  On the Pi, they are 4096 bytes (we
+will see this below).
 
 <p>
 The way memory works is as follows:  The operating system allocates
-certain pages of memory for you.  Whenever you try to read to or write
+certain pages of memory for you.  Whenever you try to read, write or execute
+an instruction 
 from an address in memory, the hardware first checks with the operating
 system to see if that address belongs to a page that has been allocated
-for you.  If so, then it goes ahead and performs the read/write.  If
-not, you'll get a segmentation violation.
+for you, and if you have permission to do the operation.  
+If so, then it goes ahead and performs the read/write.  If
+not, you'll get a segmentation violation, which is a hardware error.  It is caught
+by the operating system, which in turn "sends" it to your program (we'll see how
+you can "catch" it later in the semester).
 
 <p>This is what happens when you do:
 
@@ -131,14 +151,15 @@ not, you'll get a segmentation violation.
 </pre>
 
 When you say "<b>c = *s</b>", the hardware sees that you
-want to read memory location zero.  It checks
-with the operating system, which says "I haven't
-allocated the page containing location zero for you."  This results
-in a segmentation violation.  
+want to read memory location zero.  The hardware checks a table, which has been set up
+by the operating system, to see if location zero is legal, and discovers that it
+is not.  This results in a segmentation violation.  
 
 <p>The exact mechanics of paging are covered in
-classes on Operating Systems.  I won't go into it
+classes on Operating Systems.  I won't go into them
 further here. 
+
+<font color=red>I'M IN THE MIDDLE OF EDITING.  I HAVE STOPPED HERE.</font>
 
 <p>As it turns out, the first 8 pages on our hydra machines
 are void.  This means that trying to read to or
