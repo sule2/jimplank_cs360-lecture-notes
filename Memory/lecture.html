@@ -1,0 +1,590 @@
+<title>CS360 Lecture notes -- Memory</title>
+<body bgcolor=ffffff>
+<h1> CS360 Lecture notes -- Memory</h1>
+<LI> <a href=http://web.eecs.utk.edu/~plank>James S. Plank</a>
+<LI> Directory: <b>/home/plank/cs360/notes/Memory</b>
+<LI> Lecture notes:
+    <a href=http://web.eecs.utk.edu/~plank/plank/classes/cs360/360/notes/Memory/lecture.html>
+    <b>
+  http://web.eecs.utk.edu/~plank/plank/classes/cs360/360/notes/Memory/lecture.html
+</b></a>
+<LI> Original Lecture Notes: Mid 1990's.
+<LI> Most recent update: March, 2018
+
+<hr>
+
+<H1> Before I Start </h1>
+
+(This was written in 2018.)
+This lecture material can be problematic, because memory layout, and the primitives
+used to explore them are typically not POSIX standards, and can differ from operating
+system to operating system.  Fortunately, the concepts are easy to map from one machine to
+another, but I can understand your frustration if things become confusing on a new machine.
+<p>
+Fortunately, Raspberry Pi's using the Raspbian operating system are pretty clean, 32-bit
+machines.  The output that you see below will be on a Pi, so if you have access
+to one and want to follow along, then please do so.  Most Linux OS's will come close to
+what you see here, so long as you are ready for 64-bit pointers.  If you compile these
+programs with <b>-32</b> on a 64-bit Linux machine, you'll get nicer looking pointers.
+<p>
+
+<hr>
+<H1> Memory </h1>
+
+This lecture is an introduction to memory as we see it in Unix.
+<p>
+<p>As I have said previously, memory is like a huge array with 
+2<sup>32</sup> or 2<sup>64</sup> elements, depending on whether you are 
+running in 32 or 64-bit mode.
+A pointer in C is an index to this array.  Thus when 
+a C pointer is <tt>0xefffe034</tt>, it points to the <tt>0xefffe035th</tt> element in 
+the memory array (memory being indexed starting with zero).
+
+<p>You cannot access all elements of memory.  One example
+that we have seen a lot is element 0.  If you try to dereference a 
+pointer with a value of 0, you will get a segmentation violation.
+This is Unix's way of telling you that that memory location is
+illegal.
+
+<p>For example, the following code will generate a segmentation violation:
+
+<pre>
+main()
+{
+  char *s;
+  char c;
+
+  s = (char *) 0;
+  c = *s;
+}
+</pre>
+
+As it turns out, there are 4 regions of memory that are legal.  They are:
+<OL>
+<LI><b>The code (or "text")</b>: These are the instructions of your program
+<LI><b>The globals</b>: These are your global variables
+<LI><b>The heap</b>: This is memory that you get from <b>malloc()</b>.
+<LI><b>The stack</b>: This contains your local variables and procedure
+                        arguments.
+</OL>
+
+If we view memory as a big array, the regions (or ``segments'') look
+as follows:
+
+<pre>
+     |--------------| 0
+     |              |
+     |   void       |
+     |              |
+     |--------------| 0x10000
+     |              |
+     |  code        |
+     |              |
+     |--------------|
+     |  void        |
+     |--------------| 0x20000
+     |              |
+     |  globals     |
+     |              |
+     |--------------|
+     |              |
+     |  heap        |
+     |              |
+     ||||||||||||||||
+     |vvvvvvvvvvvvvv|
+     |              |
+     |              |
+     |  void        |
+     |              |
+     |              |
+     |^^^^^^^^^^^^^^|
+     ||||||||||||||||
+     |              |
+     |  stack       |
+     |              | 0xefffffff
+     |--------------|
+</pre>
+
+Note, the heap grows down as you make more <b>malloc()</b> calls, and the
+stack goes up as you make nested procedure calls.
+
+<hr>
+<h1>Paging</h1>
+
+On the hydra machines, memory is broken up into 8192-byte chunks.  
+These are called pages.  On some machines, pages are 4096 bytes -- this
+is something set by the hardware.
+
+<p>
+The way memory works is as follows:  The operating system allocates
+certain pages of memory for you.  Whenever you try to read to or write
+from an address in memory, the hardware first checks with the operating
+system to see if that address belongs to a page that has been allocated
+for you.  If so, then it goes ahead and performs the read/write.  If
+not, you'll get a segmentation violation.
+
+<p>This is what happens when you do:
+
+<pre>
+  s = (char *) 0;
+  c = *s;
+</pre>
+
+When you say "<b>c = *s</b>", the hardware sees that you
+want to read memory location zero.  It checks
+with the operating system, which says "I haven't
+allocated the page containing location zero for you."  This results
+in a segmentation violation.  
+
+<p>The exact mechanics of paging are covered in
+classes on Operating Systems.  I won't go into it
+further here. 
+
+<p>As it turns out, the first 8 pages on our hydra machines
+are void.  This means that trying to read to or
+write from any address from 0 to 0xffff will
+result in a segmentation violation. 
+
+<p>The next page (starting with address 0x10000)
+starts the code segment.  This segment ends at
+the variable <b>&etext</b>, which I'll go over in a bit.
+The globals segment starts at page 0x20000.  It goes until
+the variable <b>&end</b>.  The heap starts immediately
+after <b>&end</b>, and goes up to <b>sbrk(0)</b>, which I'll
+talk about still later.  The stack ends with
+address 0xefffffff.  Its beginning changes with
+the different procedure calls you make.  We'll go
+over this more later in this lecture.  Every page
+between the end of the heap 
+and the beginning of the stack is void, and will generate a
+segmentation violation upon accessing.
+
+<hr>
+<h1>&etext and &end.</h1>
+
+(For more info on these variables, do <b>man etext</b>).
+
+<p>These are two external variables that are defined as follows:
+
+<pre>
+extern etext;
+extern end;
+</pre>
+
+Note that they are typeless.  You never use just
+"<b>etext</b>" and "<b>end</b>."  Instead, you use their
+addresses -- these point to the end of the text
+and globals segments respectively. 
+
+<p>Look at the program 
+<a href=testaddr1.c><b>testaddr1.c</b></a>.  
+This prints out
+the addresses of <b>etext</b> and <b>end</b>.  Then it prints
+out 6 values: 
+
+<UL>
+<LI><b>main</b> is a pointer to the first instruction of
+    the <b>main()</b> procedure.  This is simply a
+    location in the code segment, which should be 
+    familiar to you from the assembler lectures.
+<LI><b>I</b> is a global variable.  Thus <b>&I</b> should be an
+    address in the globals segment.
+<LI><b>i</b> is a local variable.  Thus <b>&i</b> should be an
+    address in the stack.
+<LI><b>argc</b> is an argument to <b>main()</b>.  Thus, <b>&argc</b>
+    should be an address in the stack.
+<LI><b>ii</b> is another local variable.  Thus, <b>&ii</b>
+    should be an address in the stack.  However,
+    <b>ii</b> is a pointer to memory that has been
+    <b>malloc</b>'d.  Thus, <b>ii</b> should be an address in
+    the heap.
+</UL>
+
+<p>When we run <b>testaddr1</b>, we get something like the following:
+
+<pre>
+UNIX> <b>testaddr1</b>
+&etext = 0x11843
+&end   = 0x21b5c
+
+main   = 0x10b50
+&I     = 0x21b54
+&i     = 0xffbee104
+&argc  = 0xffbee15c
+&ii    = 0xffbee100
+ii     = 0x21b70
+UNIX>
+</pre>
+
+So, what this says is that the code segment goes
+from 0x10000 to 0x11843.  The globals segment goes
+from 0x20000 to 0x21b5c.  The heap goes from 0x21b5c
+to some address greater than 0x21b70 (since <b>ii</b>
+allocated 4 bytes starting at 0x21b70).  The stack
+goes from some address less than 0xefffe8f8 to
+0xefffffff.  All values that are printed by
+<b>testaddr1</b> make sense.  
+
+<hr>
+Now, look at 
+<a href=testaddr2.c><b>testaddr2.c</b></a>.  
+
+<p>This is the first really gross piece of C code
+that you'll see.  What it does is print out
+<b>&etext</b> and <b>&end</b>, and then prompt the user
+for an address in hexadecimal.  It puts that
+address into the pointer variable <b>s</b>.  You should
+never do this unless you are writing code like
+this which is testing memory.  The first thing
+that it does with <b>s</b> is try to read from that
+memory location <b>(c = *s)</b>.  Then it tries to write
+to the memory location <b>(*s = c)</b>.  This is a way
+to see which memory locations are legal.  
+
+<p>So, lets try it out with an illegal memory value of zero:
+
+<pre>
+UNIX> <b>testaddr2</b>
+&etext = 0x1191b
+&end   = 0x21d90
+
+Enter memory location in hex (start with 0x): <b>0x0</b>
+Reading 0x0:  Segmentation Fault
+UNIX> 
+</pre>
+
+When we tried to read from memory location zero,
+we got a seg fault.  This is because memory
+location zero is in the void -- the hardware
+recognized this by asking the operating system,
+and then generating a segmentation violation. 
+
+<p>Memory locations 0x0 to 0xffff are illegal -- if
+we try any address in that range, we will get a
+segmentation violation: 
+
+<pre>
+UNIX> <b>testaddr2</b>
+&etext = 0x1191b
+&end   = 0x21d90
+
+Enter memory location in hex (start with 0x): <b>0xffff</b>
+Reading 0xffff:  Segmentation Fault
+UNIX> <b>testaddr2</b>
+&etext = 0x1191b
+&end   = 0x21d90
+
+Enter memory location in hex (start with 0x): <b>0x4abc</b>
+Reading 0x4abc:  Segmentation Fault
+UNIX> 
+</pre>
+
+<p>Memory location 0x10000 is in the code segment.  This should be a legal
+address:
+
+<pre>
+UNIX> <b>testaddr2</b>
+&etext = 0x1191b
+&end   = 0x21d90
+
+Enter memory location in hex (start with 0x): <b>0x10000</b>
+Reading 0x10000:  127
+Writing 127 back to  0x10000:  Segmentation Fault
+UNIX> 
+</pre>
+
+<p>You'll note that we were able to read from 0x10000 -- it gave us the
+byte 127, which begins some instruction in the program.  However,
+we got a seg fault when we wrote to 0x10000.  This is by design:
+The code segment is read-only.  You can read from it, but you can't
+write to it.  This makes sense, because you can't change your program
+while it's running -- instead you have to recompile it, and rerun it.
+
+<p>Now, what if we try memory location 0x11fff?  This is above &etext, so
+it should be outside of the code segment:
+
+<pre>
+UNIX> <b>testaddr2</b>
+&etext = 0x1191b
+&end   = 0x21d90
+
+Enter memory location in hex (start with 0x): <b>0x11fff</b>
+Reading 0x11fff:  -48
+Writing -48 back to  0x11fff:  Segmentation Fault
+UNIX>
+</pre>
+
+You'll note that even though 0x11fff is an address
+outside the code segment, we're still allowed to
+read from it.  This is because the hardware
+checks the with operating system to see if an
+address's page has been allocated.  Since page 8
+(0x10000 - 0x11fff) has been allocated for the code
+segment, the hardware treats any address between 0x10000 and 0x11fff
+as a legal address.  You can read from it, but its value is
+meaningless.   
+
+<p>Now, pages 9 to 15 are undreadable again:
+
+<pre>
+UNIX> <b>testaddr2</b>
+&etext = 0x1191b
+&end   = 0x21d90
+
+Enter memory location in hex (start with 0x): <b>0x12000</b>
+Reading 0x12000:  Segmentation Fault
+UNIX> <b>testaddr2</b>
+&etext = 0x1191b
+&end   = 0x21d90
+
+Enter memory location in hex (start with 0x): <b>0x1f000</b>
+Reading 0x1f000:  Segmentation Fault
+UNIX> 
+</pre>
+
+<p>The globals starts at 0x20000, so we see that the 16th page is
+readable and writable:
+
+<pre>
+UNIX> <b>testaddr2</b>
+&etext = 0x1191b
+&end   = 0x21d90
+
+Enter memory location in hex (start with 0x): <b>0x20000</b>
+Reading 0x20000:  127
+Writing 127 back to  0x20000:  ok
+UNIX>          
+</pre>
+
+<p>We can read from and write to any location (0x20000 to 0x21fff)
+in this page.  The next page (starting at 0x22000) is 
+unreachable:
+
+<pre>
+UNIX> <b>testaddr2</b>
+&etext = 0x1191b
+&end   = 0x21d90
+
+Enter memory location in hex (start with 0x): <b>0x21dff</b>
+Reading 0x21dff:  0
+Writing 0 back to  0x21dff:  ok
+UNIX> <b>testaddr2</b>
+&etext = 0x1191b
+&end   = 0x21d90
+
+Enter memory location in hex (start with 0x): <b>0x22000</b>
+Reading 0x22000:  Segmentation Fault
+UNIX> 
+</pre>
+
+<p>What this tells us is that the globals go from 0x20000 to 0x21d90.  The
+heap goes from 0x21d90 up to some higher address in the same page.
+
+<hr>
+<h1>Sbrk(0)</h1>
+
+<i>As with other parts of this lecture, <b>sbrk()</b> has grown to obsolescence.
+Please see the next set of lecture notes on <b>malloc()</b> for some more current
+information.</i>
+<p>
+<b>sbrk()</b> is a system call that we will get into in
+a few lectures.  <b>sbrk(0)</b> returns to the user the
+current end of the heap.  Since we can keep
+calling <b>malloc()</b>, <b>sbrk(0)</b> can change over time.
+<a href=testaddr3.c><b>testaddr3.c</b></a>
+shows the value of <b>sbrk(0)</b> -- note it
+is in page 16 (0x20000 - 0x21fff).  Since the hardware performs
+its check in 8192-byte intervals, we can get at
+any byte in page 16, even though <b>sbrk(0)</b> returns
+0x20c78: 
+
+<pre>
+UNIX> <b>testaddr3</b>
+&etext = 0x11993
+&end   = 0x21e18
+sbrk(0)= 0x21e18
+&c     = 0xffbee103
+
+Enter memory location in hex (start with 0x): <b>0x21fff</b>
+Reading 0x21fff:  0
+Writing 0 back to  0x21fff:  ok
+UNIX> 
+</pre>
+
+We haven't called <b>malloc()</b> in <b>testaddr3.c</b>.
+This is the reason why <b>&end</b> and <b>sbrk(0)</b> return
+the same value.  In <a href=testaddr3a.c><b>testaddr3a.c</b></a>
+we make a <b>malloc()</b> call in the 
+beginning of the program, and as you see, 
+<b>&end</b> and <b>sbrk(0)</b> return different values:
+
+<pre>
+UNIX> <b>testaddr3a</b>
+&etext = 0x119a3
+&end   = 0x21e28
+sbrk(0)= 0x23e28
+&c     = 0xffbee103
+
+Enter memory location in hex (start with 0x): <b>0x23fff</b>
+Reading 0x23fff:  0
+Writing 0 back to  0x23fff:  ok
+UNIX> <b>testaddr3a</b>
+&etext = 0x119a3
+&end   = 0x21e28
+sbrk(0)= 0x23e28
+&c     = 0xffbee103
+
+Enter memory location in hex (start with 0x): <b>0x24000</b>
+Reading 0x24000:  Segmentation Fault
+UNIX> 
+</pre>
+
+<hr>
+<h1>The stack</h1>
+
+So, where's the beginning of the stack?  If we try addresses above
+0xffbee103 in <b>testaddr3</b>, we see that most of them are legal:
+
+<pre>
+UNIX> <b>testaddr3</b>
+&etext = 0x11993
+&end   = 0x21e18
+sbrk(0)= 0x21e18
+&c     = 0xffbee103
+
+Enter memory location in hex (start with 0x): <b>0xffb00000</b>
+Reading 0xffb00000:  0
+Writing 0 back to  0xffb00000:  ok
+UNIX> <b>testaddr3</b>
+&etext = 0x11993
+&end   = 0x21e18
+sbrk(0)= 0x21e18
+&c     = 0xffbee103
+
+Enter memory location in hex (start with 0x): <b>0xff3f0000</b>
+Reading 0xff3f0000:  0
+Writing 0 back to  0xff3f0000:  ok
+UNIX> <b>testaddr3</b>
+&etext = 0x11993
+&end   = 0x21e18
+sbrk(0)= 0x21e18
+&c     = 0xffbee103
+
+Enter memory location in hex (start with 0x): <b>0xff3effff</b>
+Reading 0xff3effff:  Segmentation Fault
+UNIX> 
+</pre>
+
+What gives?  As it turns out, the operating system allocates all
+pages from 0xff3f0000 to the bottom of the stack.  Where is the
+bottom of the stack?  Let's probe:
+
+<pre>
+UNIX> <b>testaddr3</b>
+&etext = 0x11993
+&end   = 0x21e18
+sbrk(0)= 0x21e18
+&c     = 0xffbee103
+
+Enter memory location in hex (start with 0x): <b>0xffbeffff</b>
+Reading 0xffbeffff:  0
+Writing 0 back to  0xffbeffff:  ok
+UNIX> <b>testaddr3</b>
+&etext = 0x11993
+&end   = 0x21e18
+sbrk(0)= 0x21e18
+&c     = 0xffbee103
+
+Enter memory location in hex (start with 0x): <b>0xffbf0000</b>
+Reading 0xffbf0000:  Segmentation Fault
+UNIX>
+</pre>
+So the stack goes from 0xff3f0000 to 0xffbeffff.  That is 
+roughly 8 megabytes.
+<p>You can print out the default stack size, and change it using 
+the <b>limit</b> command (read the man page):
+<pre>
+UNIX> <b>limit</b>
+...
+stacksize       8192 kbytes
+...
+</pre>
+
+Whenever you call a procedure, it allocates local
+variables and arguments (plus a few other things)
+on the stack.  Whenever you return from a
+procedure, those varables are popped off the
+stack.  So, look at 
+<a href=testaddr4.c><b>testaddr4.c</b></a>.  
+It has <b>main()</b>
+call itself recursively as many times as there are
+arguments.  You'll see that at each recursive
+call, the addresses of <b>argc</b> and <b>argv</b> and the
+local variable <b>i</b> are smaller addresses -- this is because
+each time the procedure is called, the stack
+grows upward to allocate its arguments and
+local variables.  You've seen this already in the assembler
+lectures.
+
+<pre>
+UNIX> <b>testaddr4</b>
+argc = 1.  &argc = 0xffbee15c, &argv = 0xffbee160, &i = 0xffbee104
+argc = 0.  &argc = 0xffbee0e4, &argv = 0xffbee0e8, &i = 0xffbee08c
+UNIX> <b>testaddr4 v</b>
+argc = 2.  &argc = 0xffbee154, &argv = 0xffbee158, &i = 0xffbee0fc
+argc = 1.  &argc = 0xffbee0dc, &argv = 0xffbee0e0, &i = 0xffbee084
+argc = 0.  &argc = 0xffbee064, &argv = 0xffbee068, &i = 0xffbee00c
+UNIX> <b>testaddr4 v o l s</b>
+argc = 5.  &argc = 0xffbee144, &argv = 0xffbee148, &i = 0xffbee0ec
+argc = 4.  &argc = 0xffbee0cc, &argv = 0xffbee0d0, &i = 0xffbee074
+argc = 3.  &argc = 0xffbee054, &argv = 0xffbee058, &i = 0xffbedffc
+argc = 2.  &argc = 0xffbedfdc, &argv = 0xffbedfe0, &i = 0xffbedf84
+argc = 1.  &argc = 0xffbedf64, &argv = 0xffbedf68, &i = 0xffbedf0c
+argc = 0.  &argc = 0xffbedeec, &argv = 0xffbedef0, &i = 0xffbede94
+UNIX> <b></b>
+</pre>
+
+Now, lets break the stack.  This can be done by writing a program 
+that allocates too much stack memory.  One such program is in 
+<a href=breakstack1.c><b>breakstack1.c</b></a>.  
+It performs infinite recursion, and at each recursive step it allocates
+10000 bytes of stack memory in the variable <b>iptr</b>.  When you run this,
+you'll see that you get a segmentation violation when the recursive
+call is made and the stack is about to dip below 0xff3f0000:
+
+<pre>
+UNIX> <b>breakstack1</b>
+...
+&c     = 0xff3fa347, iptr = 0xff3f7c30  ...  ok
+&c     = 0xff3f7bbf, iptr = 0xff3f54a8  ...  ok
+&c     = 0xff3f5437, iptr = 0xff3f2d20  ...  ok
+Segmentation Fault
+UNIX> 
+</pre>
+
+Often when you have infinite recursion and overflow the
+stack, you get "illegal instruction" instead of Segmenation fault.
+I can't explain this in detail-- just be ready for it...
+
+<p>The second way to break the stack is to simply allocate too much local
+memory.  E.g. look at 
+<a href=breakstack2.c><b>breakstack2.c</b></a>.  
+It tries to allocate 10M of memory
+in the stack.   It segfaults in <b>a</b> because it tries to 
+reference smaller memory addresses than 0xff3f0000.  Exactly where
+does the seg fault happen?  Think about it -- answer below.
+<p>
+The segfault happens in <b>a</b> when the code attempts to push
+<b>iptr</b> on the stack for the <b>printf</b> call.  This is because
+the stack pointer is pointing to the void.  Had we not referenced
+anything at the stack pointer, our program should have worked.  For
+example, try 
+<a href=breakstack3.c><b>breakstack3.c</b></a>.  
+<pre>
+UNIX> <b>breakstack3</b>
+Calling a.  i = 1
+After a is done.  i = 5
+UNIX> 
+</pre>
+You should understand, and be able to explain this phenomenon.
+
