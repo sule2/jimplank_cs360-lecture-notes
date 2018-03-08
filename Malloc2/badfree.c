@@ -9,7 +9,7 @@ int main()
 
   for (i = 0; i < 1000; i++) {
     s = (char *) malloc(10);
-    printf("0x%x\n", s);
+    printf("0x%x\n", (unsigned int) s);
     for (j = 0; j < 10; j++) s[j] = 'a' + j % 26;
     free(s+8);
   }
