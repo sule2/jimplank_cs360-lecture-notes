@@ -1,0 +1,403 @@
+<title>CS360 Lecture notes -- Malloc Lecture #1</title>
+<body bgcolor=ffffff>
+<h1>CS360 Lecture notes -- Malloc Lecture #1</h1>
+<LI><a href=http://web.eecs.utk.edu/~plank>James S. Plank</a>
+<LI>Directory: <b>/home/plank/cs360/notes/Malloc1</b>
+<LI>Lecture notes:
+    <a href=http://web.eecs.utk.edu/~plank/plank/classes/cs360/360/notes/Malloc1/lecture.html>
+    <b>
+  http://web.eecs.utk.edu/~plank/plank/classes/cs360/360/notes/Malloc1/lecture.html
+</b></a>
+<LI> Original Lecture Notes: 1996
+<LI> Most recent modification: 
+Thu Mar  8 10:29:50 EST 2018
+<hr>
+
+<b>Caveat from 2001</b>:
+<i>Read the lecture before trying these programs.  
+Unfortunately, the implementation of 
+<b>malloc()</b> and <b>free()</b> on our lab machines
+will not match the description in these notes 100 percent.
+That is because these notes were originally written in the 
+mid-1990's and malloc implementations seem to change every
+few years.
+<p>
+I stick with this description because it is clear.  
+However, it is not how things really work these days.</i>
+<hr>
+<b>Caveat from 2014</b>:
+<font color=darkred>Also, <b>sbrk()</b> and <b>brk()</b> are no longer used to 
+implement <b>malloc()</b>.  Instead, the system call is <b>mmap()</b>.  I don't think
+the complexities of <b>mmap()</b> are worth exploring in CS360.  You may want to explore
+them on your own.  The first important thing is for you to realize that <b>malloc()</b> is a
+buffered interface on top of a system call that allows the operating system to give
+you memory.  In these lectures, that system call is <b>sbrk()</b>, although in reality
+it is <b>mmap()</b>.
+<p>
+The second important thing is that <b>malloc()</b> has to do bookkeeping somehow, and one
+way to do that is to use the bytes before the pointer that it returns.  That is the topic
+of this lecture.</font>
+
+<hr>
+
+This is a lecture about <b>sbrk()</b> and <b>malloc()</b>.
+
+<p>Last class we went over some general memory stuff
+-- we learned that the last address in the code
+segment is <b>&etext</b>, and the last address in
+the globals segment is <b>&end</b>.  
+As the program runs, and
+memory is allocated from the heap using <b>malloc()</b>,
+the heap grows. To figure out the boundary of the
+heap, we must use <b>brk()</b> or <b>sbrk()</b>.  Both are
+system calls, and you can read their man pages.
+We will only discuss <b>sbrk()</b> as it is the only
+call you will need.  
+
+<pre>
+caddr_t sbrk(int incr);
+</pre>
+
+A <b>caddr_t</b> is a "c address pointer".  It is the same as a 
+<b>(char *)</b> or a <b>(void *)</b>.
+
+<p>This specifies for the operating system to
+give <b>incr</b> more bytes to the heap.  It returns a
+pointer to the end of the heap before <b>sbrk()</b> was
+called.  Thus, the new end of the heap after an
+<b>sbrk()</b> call is at address 
+
+<pre>
+    sbrk(incr) + incr;
+</pre>
+
+If you call <b>sbrk(0)</b>, then it returns the current end of the heap.
+
+<p>Now, <b>malloc()</b> (and the related programs
+<b>realloc()</b> and <b>calloc()</b>) all call <b>sbrk()</b> to get
+the memory to allocate in the heap.  They are the
+only routines that call <b>sbrk()</b>.  Thus, the only
+way that you can get memory in the heap is
+through <b>malloc()</b> or <b>sbrk()</b>.  However, you should
+use <b>malloc()</b>, as it is more efficient. 
+
+<hr>
+Let's try it out.  Look at
+<a href=fb2.c><b>fb2.c</b></a>: 
+
+<p><center><table border=3 cellpadding=3><td><pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;sys/types.h&gt;
+
+int main()
+{
+  int *i1, *i2;
+
+  printf("sbrk(0) before malloc(4): 0x%x\n", sbrk(0));
+
+  i1 = (int *) malloc(4);
+  printf("sbrk(0) after `i1 = (int *) malloc(4)': 0x%x\n", sbrk(0));
+
+  i2 = (int *) malloc(4);
+  printf("sbrk(0) after `i2 = (int *) malloc(4)': 0x%x\n", sbrk(0));
+
+  printf("i1 = 0x%x, i2 = 0x%x\n", (unsigned int) i1, (unsigned int) i2);
+}
+</pre></td></table></center><p>
+
+This prints <b>sbrk(0)</b> before and after some <b>malloc()</b> 
+calls.  Here's the result of running it on a Linux box:
+
+<pre>
+UNIX> <b>./fb2</b>
+sbrk(0) before malloc(4): 0x21ab0
+sbrk(0) after `i1 = (int *) malloc(4)': 0x23ab0
+sbrk(0) after `i2 = (int *) malloc(4)': 0x23ab0
+i1 = 0x21ac0, i2 = 0x21ad0
+UNIX>
+</pre>
+
+Note that <b>sbrk()</b> doesn't change after the
+<b>malloc()</b> calls.  Why?  Because <b>malloc()</b> does
+buffering.  When it calls <b>sbrk()</b> it calls it with
+a large number -- something like 12K or 8K, and
+then it doles out memory from this buffer.  In
+other words after <b>i1</b> and <b>i2</b> are allocated, there
+is still a whole bunch of memory -- from <b>0x0x21ad0</b>
+to <b>0x0x23ab0</b> that <b>malloc()</b> can use before calling
+<b>sbrk()</b> again.  This is roughly 8160 bytes.
+Thus, in <a href=fb2a.c><b>fb2a.c</b></a>,
+when we
+do a <b>malloc(8164)</b> after allocating <b>i1</b> and <b>i2</b>, we
+expect to see that <b>sbrk()</b> was called to get more
+memory, and indeed this is the case: 
+
+<pre>
+UNIX> <b>fb2a</b>
+sbrk(0) before malloc(4): 0x21b68
+sbrk(0) after `i1 = (int *) malloc(4)': 0x23b68
+sbrk(0) after `i2 = (int *) malloc(4)': 0x23b68
+i1 = 0x21b78, i2 = 0x21b88, sbrk(0)-i2 = 8160
+sbrk(0) after `i3 = (int *) malloc(8164)': 0x25b68
+i3 = 0x21f78
+UNIX>
+</pre>
+
+Now, look at 
+<a href=fb3.c><b>fb3.c</b></a>.
+This calls <b>malloc(4)</b> 10 times and prints out the
+memory allocated:
+
+<b><a href=fb3.c>fb3.c</a></b>
+
+<p><center><table border=3 cellpadding=3><td><pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+main()
+{
+  int j, *buf;
+
+  for (j = 0; j &lt; 10; j++) {
+    buf = (int *) malloc(4);
+    printf("malloc(4) returned 0x%x\n", buf);
+  }
+}
+</pre></td></table></center><p>
+
+
+<pre>
+UNIX> <b>fb3</b>
+malloc(4) returned 0x219d0
+malloc(4) returned 0x219e0
+malloc(4) returned 0x219f0
+malloc(4) returned 0x21a00
+malloc(4) returned 0x21a10
+malloc(4) returned 0x21a20
+malloc(4) returned 0x21a30
+malloc(4) returned 0x21a40
+malloc(4) returned 0x21a50
+malloc(4) returned 0x21a60
+UNIX>
+</pre>
+
+You'll note that each return value from <b>malloc()</b> is
+16 bytes greater than the previous one.  You
+might expect it to be only 4 bytes greater since
+it is only allocating 4 bytes.  What is happening
+is that <b>malloc()</b> allocates some extra bytes each
+time it is called so that it can do bookkeeping.
+These extra bytes help out when <b>free()</b> is
+called.  These extra bytes are often allocated
+<i>before</i> the returned memory.  You'll see
+why when we start to look at <b>free()</b>.
+
+<p>
+Look at 
+<a href=fb4.c><b>fb4.c</b></a>.
+What this does is allocate a whole bunch
+of memory regions using <b>malloc()</b>, and then it
+prints out their starting addresses, and the
+values that are located one and two words (I use "word" to
+denote a 4-byte quantity) before the starting
+addresses.  Again, this is the kind of code which 
+(for good reason) most programmers deem as ``unsafe''.
+However, it's the only way to check out these things.
+As you can see, two words before the
+return value from <b>malloc()</b> contains how many bytes
+were actually allocated.  This is a little
+confusing, so lets look at the output of <b>fb4</b> in
+detail:  (On different systems, <b>malloc</b> works in different
+ways.  If the output on your system looks different from this, please
+see <a href=diff.html>this note</a>).
+
+<pre>
+UNIX> <b>fb4</b>
+sbrk(0) = 0x70f8
+Allocated 4 bytes.  buf = 0x61a8, buf[-1] = 0, buf[-2] = 16, buf[0] = 1000
+Allocated 8 bytes.  buf = 0x61b8, buf[-1] = 0, buf[-2] = 16, buf[0] = 1001
+Allocated 12 bytes.  buf = 0x61c8, buf[-1] = 0, buf[-2] = 24, buf[0] = 1002
+Allocated 16 bytes.  buf = 0x61e0, buf[-1] = 0, buf[-2] = 24, buf[0] = 1003
+Allocated 20 bytes.  buf = 0x61f8, buf[-1] = 0, buf[-2] = 32, buf[0] = 1004
+Allocated 24 bytes.  buf = 0x6218, buf[-1] = 0, buf[-2] = 32, buf[0] = 1005
+Allocated 28 bytes.  buf = 0x6238, buf[-1] = 0, buf[-2] = 40, buf[0] = 1006
+Allocated 100 bytes.  buf = 0x6260, buf[-1] = 0, buf[-2] = 112, buf[0] = 1007
+sbrk(0) = 0x70f8
+UNIX>
+</pre>
+
+So, look at the heap after the first call to <b>malloc()</b>, and <b>buf[0]</b> 
+is set to <b>i</b> = 1000:
+
+<pre>
+         |---------------|  
+         |      ...      | 
+         |               |      
+         |      16       | 0x61a0
+         |               | 0x61a4     
+         |     1000      | 0x61a8  <--------- return value
+         |               | 0x61ac
+         |               | 0x61b0
+         |               | 0x61b4
+         |      ...      |      
+         |               |      
+         |               |      
+         |               |      
+         |---------------| 0x70f8 (sbrk(0));
+</pre>
+
+Now, when <b>malloc()</b> is called a second time (<b>buf = malloc(8)</b>), 
+<b>malloc()</b>
+returns <b>0x61b8</b>.  After <b>buf[0]</b> is set to <b>i</b> = 1001, 
+the heap looks as
+follows:
+<pre>
+         |---------------|  
+         |      ...      | 
+         |               |      
+         |      16       | 0x61a0
+         |               | 0x61a4     
+         |     1000      | 0x61a8  
+         |               | 0x61ac
+         |      16       | 0x61b0
+         |               | 0x61b4
+         |     1001      | 0x61b8  <--------- return value
+         |               | 0x61bc
+         |               | 0x61c0
+         |               | 0x61c4
+         |      ...      |      
+         |               |      
+         |               |      
+         |---------------| 0x70f8 (sbrk(0));
+</pre>
+
+And so on -- when the final <b>sbrk(0)</b> is called, the heap looks as follows:
+
+<pre>
+         |---------------| 
+         |      ...      |
+         |               | 
+         |      16       | 0x61a0
+         |               | 0x61a4
+         |     1000      | 0x61a8
+         |               | 0x61ac
+         |      16       | 0x61b0
+         |               | 0x61b4
+         |     1001      | 0x61b8 
+         |               | 0x61bc
+         |      24       | 0x61c0
+         |               | 0x61c4
+         |     1002      | 0x61c8 
+         |               | 0x61cc
+         |               | 0x61d0
+         |               | 0x61d4
+         |      24       | 0x61d8 
+         |               | 0x61dc
+         |     1003      | 0x61e0
+         |               | 0x61e4
+         |               | 0x61e8 
+         |               | 0x61ec
+         |      32       | 0x61f0
+         |               | 0x61f4
+         |     1004      | 0x61f8 
+         |               | 0x61fc
+         |               | 0x6200
+         |               | 0x6204
+         |               | 0x6208 
+         |               | 0x620c
+         |      32       | 0x6210
+         |               | 0x6214
+         |     1005      | 0x6218 
+         |               | 0x621c
+         |               | 0x6220
+         |               | 0x6224
+         |               | 0x6228 
+         |               | 0x622c
+         |      40       | 0x6230
+         |               | 0x6234
+         |     1006      | 0x6238 
+         |               | 0x623c
+         |               | 0x6240
+         |               | 0x6244
+         |               | 0x6248 
+         |               | 0x624c
+         |               | 0x6250
+         |               | 0x6254
+         |     112       | 0x6258 
+         |               | 0x625c
+         |     1007      | 0x6260
+         |               | 0x6264
+         |      ...      |
+         |               |
+         |               |
+         |---------------| 0x70f8 (sbrk(0));
+</pre>
+
+So, <b>malloc()</b> calls <b>sbrk()</b> to get memory from the
+operating system into a buffer, and then it doles
+out the memory from that buffer as it is called.
+When it runs out of buffer space, it calls <b>sbrk()</b>
+to get more. 
+
+<p>Why do <b>malloc(4)</b> and <b>malloc(8)</b> allocate 16 bytes,
+and <b>malloc(12)</b> and <b>malloc(16)</b> allocate 24?
+Because <b>malloc()</b> pads out the memory allocated to
+multiples of 8 bytes.  Thus <b>malloc(4)</b> and
+<b>malloc(8)</b> allocate 8 bytes for the user, plus an
+extra 8 bytes for bookkeeping.  <b>Malloc(12)</b> and
+<b>malloc(16)</b> allocate 16 bytes for the user, plus
+an extra 8 bytes for bookkeeping for a total of
+24 bytes.  <b>Malloc(100)</b> allocates 104 bytes for
+the user, plus an extra 8 bytes for bookkeeping. 
+
+<p>Why does <b>malloc()</b> perform this padding?  So that
+the addresses returned will be multiples of eight, and
+thus will be valid for pointers of any type.  Suppose
+<b>malloc()</b> didn't do this, and instead could return any
+pointer.  Then if you did the following:
+<pre>
+  int *i;
+
+  i = (int *) malloc(4);
+  *i = 4;
+</pre>
+you might generate a bus error, because <b>malloc()</b> may return
+a value that is not a multiple of 4.  As it is, <b>malloc()</b>
+returns multiples of eight, so that pointers to doubles
+and long integers (if the architecture supports them as 8-byte
+quantities) will not cause bus errors.
+
+<p>How does <b>malloc()</b> know where to dole memory from?
+It uses a global variable or two.  For example,
+it may have two global variables defined as
+follows: 
+
+<pre>
+char *malloc_begin = NULL;
+char *malloc_end = NULL;
+</pre>
+
+When <b>malloc()</b> is called it first checks to
+see if <b>malloc_begin == NULL</b>.  If so, it calls
+<b>sbrk()</b> to get a buffer.  It uses <b>malloc_begin</b> and
+<b>malloc_end</b> to denote the beginning and end of
+that buffer.  As <b>malloc()</b> gets called it doles
+out memory from the beginning of the buffer, and updates
+<b>malloc_begin</b> accordingly.  If there is not enough
+room in the buffer, then <b>sbrk()</b> is called to get
+more buffer space, and <b>malloc_end</b> is incremented
+to denote the enlarged buffer.
+
+<p>Now, this describes how to write a simple <b>malloc()</b>
+with no <b>free()</b> calls.  When <b>free()</b> gets called,
+you should have <b>malloc()</b> be able to reuse that memory.  This
+means that you have to do something more
+sophisticated with <b>malloc()</b>.  We'll talk about it
+in Malloc lecture #2.  Think about it in the
+meantime.  
+
+<hr>
+This link -- <a href=diff.html>this note</a> -- gives some explorations about differing
+implementations of <b>malloc()</b> from 1996 to 1999.  I won't test you on this, but
+you may find it interesting.
