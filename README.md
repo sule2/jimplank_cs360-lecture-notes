@@ -23,3 +23,4 @@ Lecture notes and example programs for Dr. Plank's CS360 class at the University
 - [Lecture #16: Assembler Lecture #3: Pointers](Assembler3/README.md)
 - [Lecture #17: Assembler Lecture #4: Conditionals](Assembler4/README.md)
 - [Lecture #19: Malloc Lecture #1](Malloc1/README.md)
+- [Lecture #20: Malloc Lecture #2](Malloc2/README.md)
