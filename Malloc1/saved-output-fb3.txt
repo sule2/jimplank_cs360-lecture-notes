@@ -1,0 +1,12 @@
+UNIX> fb3
+malloc(4) returned 0x219d0
+malloc(4) returned 0x219e0
+malloc(4) returned 0x219f0
+malloc(4) returned 0x21a00
+malloc(4) returned 0x21a10
+malloc(4) returned 0x21a20
+malloc(4) returned 0x21a30
+malloc(4) returned 0x21a40
+malloc(4) returned 0x21a50
+malloc(4) returned 0x21a60
+UNIX>

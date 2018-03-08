@@ -1,0 +1,95 @@
+<title>CS360 Lecture notes -- Malloc Lecture #1 -- note about different systems</title>
+<body bgcolor=ffffff>
+<h1>CS360 Lecture notes -- Malloc Lecture #1 -- note about different systems</h1>
+<LI><a href=http://www.cs.utk.edu/~plank>Jim Plank</a>
+<LI>Directory: <b>/home/plank/cs360/notes/Malloc1</b>
+<LI>Lecture notes:
+    <a href=http://www.cs.utk.edu/~plank/plank/classes/cs360/360/notes/Malloc1/diff.html>
+    <b>
+  http://www.cs.utk.edu/~plank/plank/classes/cs360/360/notes/Malloc1/diff.html
+</b></a>
+<hr>
+
+Each system implements <b>malloc()</b> in its own way.  The description that
+I give in class is how Solaris systems implemented <b>malloc()</b> and 
+<b>free()</b> in 1996.  I use it because it is easy to explain.  
+<p>
+When you run <b>fb4</b> on current machines, the output will be different.
+For example, here is the output on a Cetus lab machine in 1999:
+<pre>
+UNIX> <b>fb4</b>
+sbrk(0) = 0x20b08
+Allocated 4 bytes.  buf = 0x20b18, buf[-1] = 0, buf[-2] = 9, buf[0] = 1000
+Allocated 8 bytes.  buf = 0x20b28, buf[-1] = 0, buf[-2] = 9, buf[0] = 1001
+Allocated 12 bytes.  buf = 0x20f20, buf[-1] = 0, buf[-2] = 17, buf[0] = 1002
+Allocated 16 bytes.  buf = 0x20f38, buf[-1] = 0, buf[-2] = 17, buf[0] = 1003
+Allocated 20 bytes.  buf = 0x21528, buf[-1] = 0, buf[-2] = 25, buf[0] = 1004
+Allocated 24 bytes.  buf = 0x21548, buf[-1] = 0, buf[-2] = 25, buf[0] = 1005
+Allocated 28 bytes.  buf = 0x21d30, buf[-1] = 0, buf[-2] = 33, buf[0] = 1006
+Allocated 100 bytes.  buf = 0x22730, buf[-1] = 0, buf[-2] = 105, buf[0] = 1007
+sbrk(0) = 0x22b08
+UNIX> 
+</pre>
+
+This is different from the 1996 output, but as you can see, it
+is functionally equivalent -- the value in the word two words before the
+returned pointer is seven less than the number of bytes allocated.  Why?
+I don't know -- but all you have to do is add seven to it to get the chunk size.
+<p>
+The Pentium box on my desk in 2002 had the following output:
+<pre>
+UNIX> <b>fb4</b>
+sbrk(0) = 0x8049778
+Allocated 4 bytes.  buf = 0x8049780, buf[-1] = 17, buf[-2] = 0, buf[0] = 1000
+Allocated 8 bytes.  buf = 0x8049790, buf[-1] = 17, buf[-2] = 0, buf[0] = 1001
+Allocated 12 bytes.  buf = 0x80497a0, buf[-1] = 17, buf[-2] = 0, buf[0] = 1002
+Allocated 16 bytes.  buf = 0x80497b0, buf[-1] = 25, buf[-2] = 0, buf[0] = 1003
+Allocated 20 bytes.  buf = 0x80497c8, buf[-1] = 25, buf[-2] = 0, buf[0] = 1004
+Allocated 24 bytes.  buf = 0x80497e0, buf[-1] = 33, buf[-2] = 0, buf[0] = 1005
+Allocated 28 bytes.  buf = 0x8049800, buf[-1] = 33, buf[-2] = 0, buf[0] = 1006
+Allocated 100 bytes.  buf = 0x8049820, buf[-1] = 105, buf[-2] = 0, buf[0] = 1007
+sbrk(0) = 0x804a000
+</pre>
+So now the size information is in the first word before the pointer.
+It appears to be the size of the chunk plus one.
+You'll also note that <b>malloc(12)</b> allocates 16 bytes instead of 24.  Why?  Because
+it's only using four bytes for bookkeeping -- we pad to the next value of <i>i</i> 
+such that <i>i%8 = 4</i>.
+<p>
+Why then does <b>malloc(4)</b> allocate 16 bytes?  Internal fragmentation I'm sure -- the
+size of a free list node has to be greater than 8 bytes.
+<p>
+Here's the output on a DECstation running Ultrix in 2002:
+<pre>
+UNIX> <b>fb4</b>
+sbrk(0) = 0x10001100
+Allocated 4 bytes.  buf = 0x10005000, buf[-1] = 268435695, buf[-2] = 0, buf[0] = 1000
+Allocated 8 bytes.  buf = 0x10006000, buf[-1] = 268435951, buf[-2] = 0, buf[0] = 1001
+Allocated 12 bytes.  buf = 0x10006010, buf[-1] = 268435951, buf[-2] = 0, buf[0] = 1002
+Allocated 16 bytes.  buf = 0x10007000, buf[-1] = 268436207, buf[-2] = 0, buf[0] = 1003
+Allocated 20 bytes.  buf = 0x10007020, buf[-1] = 268436207, buf[-2] = 0, buf[0] = 1004
+Allocated 24 bytes.  buf = 0x10007040, buf[-1] = 268436207, buf[-2] = 0, buf[0] = 1005
+Allocated 28 bytes.  buf = 0x10007060, buf[-1] = 268436207, buf[-2] = 0, buf[0] = 1006
+Allocated 100 bytes.  buf = 0x10008000, buf[-1] = 268436719, buf[-2] = 0, buf[0] = 1007
+sbrk(0) = 0x10008ffc
+UNIX> 
+</pre>
+There's an odd one -- Any clues?  When I turn the <b>int</b>'s 
+into <b>shorts</b> in <b>fb5.c</b>, I get:
+<pre> 
+UNIX> <b>fb5</b>
+sbrk(0) = 0x10001100
+Allocated 4 bytes.  buf = 0x10005000, buf[-1] = 4096, buf[-2] = 239, buf[0] = 1000
+Allocated 8 bytes.  buf = 0x10006000, buf[-1] = 4096, buf[-2] = 495, buf[0] = 1001
+Allocated 12 bytes.  buf = 0x10006010, buf[-1] = 4096, buf[-2] = 495, buf[0] = 1002
+Allocated 16 bytes.  buf = 0x10007000, buf[-1] = 4096, buf[-2] = 751, buf[0] = 1003
+Allocated 20 bytes.  buf = 0x10007020, buf[-1] = 4096, buf[-2] = 751, buf[0] = 1004
+Allocated 24 bytes.  buf = 0x10007040, buf[-1] = 4096, buf[-2] = 751, buf[0] = 1005
+Allocated 28 bytes.  buf = 0x10007060, buf[-1] = 4096, buf[-2] = 751, buf[0] = 1006
+Allocated 100 bytes.  buf = 0x10008000, buf[-1] = 4096, buf[-2] = 1263, buf[0] = 1007
+sbrk(0) = 0x10008ffc
+UNIX> 
+</pre>
+Odd indeed.  Can you guess at an explanation?  I think I can, but I don't have the time
+to make sure it's correct.  I'll talk about it in class.
+

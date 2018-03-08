@@ -224,8 +224,8 @@ ways.  I illustrate some examples in
 <a href=diff.html>this note</a>).
 
 <pre>
-UNIX> <b>fb4</b>
-sbrk(0) = 0x70f8
+UNIX> <font color=darkred><b>./fb4</b></font>
+sbrk(0) = 0x61a0
 Allocated 4 bytes.  buf = 0x61a8, buf[-1] = 0, buf[-2] = 16, buf[0] = 1000
 Allocated 8 bytes.  buf = 0x61b8, buf[-1] = 0, buf[-2] = 16, buf[0] = 1001
 Allocated 12 bytes.  buf = 0x61c8, buf[-1] = 0, buf[-2] = 24, buf[0] = 1002
@@ -258,7 +258,7 @@ is set to <b>i</b> = 1000:
          |---------------| 0x70f8 (sbrk(0));
 </pre>
 
-Now, when <b>malloc()</b> is called a second time (<b>buf = malloc(8)</b>), 
+When <b>malloc()</b> is called a second time (<b>buf = malloc(8)</b>), 
 <b>malloc()</b>
 returns <b>0x61b8</b>.  After <b>buf[0]</b> is set to <b>i</b> = 1001, 
 the heap looks as
@@ -345,7 +345,7 @@ And so on -- when the final <b>sbrk(0)</b> is called, the heap looks as follows:
          |---------------| 0x70f8 (sbrk(0));
 </pre>
 
-So, <b>malloc()</b> calls <b>sbrk()</b> to get memory from the
+Once again, <b>malloc()</b> calls <b>sbrk()</b> to get memory from the
 operating system into a buffer, and then it doles
 out the memory from that buffer as it is called.
 When it runs out of buffer space, it calls <b>sbrk()</b>
@@ -376,8 +376,7 @@ pointer.  Then if you did the following:
 you might generate a bus error, because <b>malloc()</b> may return
 a value that is not a multiple of 4.  As it is, <b>malloc()</b>
 returns multiples of eight, so that pointers to doubles
-and long integers (if the architecture supports them as 8-byte
-quantities) will not cause bus errors.
+and long integers will not cause bus errors.
 
 <p>How does <b>malloc()</b> know where to dole memory from?
 It uses a global variable or two.  For example,
@@ -389,11 +388,11 @@ char *malloc_begin = NULL;
 char *malloc_end = NULL;
 </pre>
 
-When <b>malloc()</b> is called it first checks to
-see if <b>malloc_begin == NULL</b>.  If so, it calls
+When <b>malloc()</b> is called, it first checks to
+see if <b>malloc_begin</b> equals <b>NULL</b>.  If so, it calls
 <b>sbrk()</b> to get a buffer.  It uses <b>malloc_begin</b> and
 <b>malloc_end</b> to denote the beginning and end of
-that buffer.  As <b>malloc()</b> gets called it doles
+that buffer.  As <b>malloc()</b> gets called further, it doles
 out memory from the beginning of the buffer, and updates
 <b>malloc_begin</b> accordingly.  If there is not enough
 room in the buffer, then <b>sbrk()</b> is called to get
@@ -408,7 +407,3 @@ sophisticated with <b>malloc()</b>.  We'll talk about it
 in Malloc lecture #2.  Think about it in the
 meantime.  
 
-<hr>
-This link -- <a href=diff.html>this note</a> -- gives some explorations about differing
-implementations of <b>malloc()</b> from 1996 to 1999.  I won't test you on this, but
-you may find it interesting.

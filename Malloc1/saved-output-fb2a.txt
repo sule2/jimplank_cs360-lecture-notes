@@ -1,0 +1,8 @@
+UNIX> fb2a
+sbrk(0) before malloc(4): 0x21b68
+sbrk(0) after `i1 = (int *) malloc(4)': 0x23b68
+sbrk(0) after `i2 = (int *) malloc(4)': 0x23b68
+i1 = 0x21b78, i2 = 0x21b88, sbrk(0)-i2 = 8160
+sbrk(0) after `i3 = (int *) malloc(8164)': 0x25b68
+i3 = 0x21f78
+UNIX>

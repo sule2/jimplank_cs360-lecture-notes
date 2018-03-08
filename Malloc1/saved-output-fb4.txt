@@ -1,0 +1,12 @@
+UNIX> fb4
+sbrk(0) = 0x70f8
+Allocated 4 bytes.  buf = 0x61a8, buf[-1] = 0, buf[-2] = 16, buf[0] = 1000
+Allocated 8 bytes.  buf = 0x61b8, buf[-1] = 0, buf[-2] = 16, buf[0] = 1001
+Allocated 12 bytes.  buf = 0x61c8, buf[-1] = 0, buf[-2] = 24, buf[0] = 1002
+Allocated 16 bytes.  buf = 0x61e0, buf[-1] = 0, buf[-2] = 24, buf[0] = 1003
+Allocated 20 bytes.  buf = 0x61f8, buf[-1] = 0, buf[-2] = 32, buf[0] = 1004
+Allocated 24 bytes.  buf = 0x6218, buf[-1] = 0, buf[-2] = 32, buf[0] = 1005
+Allocated 28 bytes.  buf = 0x6238, buf[-1] = 0, buf[-2] = 40, buf[0] = 1006
+Allocated 100 bytes.  buf = 0x6260, buf[-1] = 0, buf[-2] = 112, buf[0] = 1007
+sbrk(0) = 0x70f8
+UNIX>
