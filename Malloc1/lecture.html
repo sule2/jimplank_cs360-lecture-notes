@@ -122,7 +122,7 @@ As you can see, the first <b>malloc()</b> call changed the return value
 of <b>sbrk(0)</b>.  The second one did not.  You'll also note that the
 difference between the first two <b>sbrk(0)</b> calls is 
 <p>
-<center><tt>(0x23ab0 - 0x21ab0 = 0x2000 = 8K)</tt>
+<center><tt>(0x23ab0 - 0x21ab0 = 0x2000 = 8K)</tt></center><p>
 
 This number will be different from system to system.  On my Raspberry Pi 
 in 2018, it was 33K.  However
@@ -167,17 +167,17 @@ memory allocated:
 #include &lt;stdio.h&gt;
 #include &lt;stdlib.h&gt;
 
-main()
+int main()
 {
   int j, *buf;
 
   for (j = 0; j &lt; 10; j++) {
     buf = (int *) malloc(4);
-    printf("malloc(4) returned 0x%x\n", buf);
+    printf("malloc(4) returned 0x%x\n", (unsigned int) buf);
   }
+  return 0;
 }
 </pre></td></table></center><p>
-
 
 <pre>
 UNIX> <b>fb3</b>
