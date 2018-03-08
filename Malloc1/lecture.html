@@ -180,7 +180,7 @@ int main()
 </pre></td></table></center><p>
 
 <pre>
-UNIX> <b>fb3</b>
+UNIX> <font color=darkred><b>./fb3</b></font>
 malloc(4) returned 0x219d0
 malloc(4) returned 0x219e0
 malloc(4) returned 0x219f0
@@ -211,18 +211,17 @@ Look at
 What this does is allocate a whole bunch
 of memory regions using <b>malloc()</b>, and then it
 prints out their starting addresses, and the
-values that are located one and two words (I use "word" to
-denote a 4-byte quantity) before the starting
-addresses.  Again, this is the kind of code which 
+values that are located one and two integers 
+before the starting addresses.  Again, this is the kind of code which 
 (for good reason) most programmers deem as ``unsafe''.
 However, it's the only way to check out these things.
-As you can see, two words before the
+As you can see, two integers before the
 return value from <b>malloc()</b> contains how many bytes
 were actually allocated.  This is a little
 confusing, so lets look at the output of <b>fb4</b> in
-detail:  (On different systems, <b>malloc</b> works in different
-ways.  If the output on your system looks different from this, please
-see <a href=diff.html>this note</a>).
+detail:  (Again, on different systems, <b>malloc()</b> works in different
+ways.  I illustrate some examples in
+<a href=diff.html>this note</a>).
 
 <pre>
 UNIX> <b>fb4</b>
