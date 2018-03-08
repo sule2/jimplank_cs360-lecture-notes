@@ -107,10 +107,10 @@ int main()
 </pre></td></table></center><p>
 
 This prints <b>sbrk(0)</b> before and after some <b>malloc()</b> 
-calls.  Here's the result of running it on a Linux box:
+calls.  Here's the result of running it on a Linux box in 2014:
 
 <pre>
-UNIX> <b>./fb2</b>
+UNIX> <font color=darkred><b>fb2</b></font>
 sbrk(0) before malloc(4): 0x21ab0
 sbrk(0) after `i1 = (int *) malloc(4)': 0x23ab0
 sbrk(0) after `i2 = (int *) malloc(4)': 0x23ab0
@@ -118,14 +118,26 @@ i1 = 0x21ac0, i2 = 0x21ad0
 UNIX>
 </pre>
 
-Note that <b>sbrk()</b> doesn't change after the
-<b>malloc()</b> calls.  Why?  Because <b>malloc()</b> does
-buffering.  When it calls <b>sbrk()</b> it calls it with
-a large number -- something like 12K or 8K, and
-then it doles out memory from this buffer.  In
-other words after <b>i1</b> and <b>i2</b> are allocated, there
-is still a whole bunch of memory -- from <b>0x0x21ad0</b>
-to <b>0x0x23ab0</b> that <b>malloc()</b> can use before calling
+As you can see, the first <b>malloc()</b> call changed the return value
+of <b>sbrk(0)</b>.  The second one did not.  You'll also note that the
+difference between the first two <b>sbrk(0)</b> calls is 
+<p>
+<center><tt>(0x23ab0 - 0x21ab0 = 0x2000 = 8K)</tt>
+
+This number will be different from system to system.  On my Raspberry Pi 
+in 2018, it was 33K.  However
+all systems will share one feature: The number is a lot bigger than the four bytes that
+we asked for.  The reason it does that is buffering.  Since <b>sbrk()</b> is a
+system call, it is expensive.  By calling it with a large number, <b>malloc()</b>
+can satisfy a lot of requests for smaller blocks of memory with just one system
+call to <b>sbrk()</b>.
+<p>
+
+To repeat -- <b>malloc()</b> calls <b>sbrk()</b> with a large number which it
+treats as a buffer.  Then it doles out memory from this buffer. 
+After <b>i1</b> and <b>i2</b> are allocated, there
+is still a whole bunch of memory -- from <tt>0x0x21ad0</tt>
+to <tt>0x0x23ab0</tt> that <b>malloc()</b> can use before calling
 <b>sbrk()</b> again.  This is roughly 8160 bytes.
 Thus, in <a href=fb2a.c><b>fb2a.c</b></a>,
 when we
@@ -134,7 +146,7 @@ expect to see that <b>sbrk()</b> was called to get more
 memory, and indeed this is the case: 
 
 <pre>
-UNIX> <b>fb2a</b>
+UNIX> <font color=darkred><b>./fb2a</b></font>
 sbrk(0) before malloc(4): 0x21b68
 sbrk(0) after `i1 = (int *) malloc(4)': 0x23b68
 sbrk(0) after `i2 = (int *) malloc(4)': 0x23b68
