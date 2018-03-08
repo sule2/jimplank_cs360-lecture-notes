@@ -36,6 +36,9 @@ buffered interface on top of a system call that allows the operating system to g
 you memory.  In these lectures, that system call is <b>sbrk()</b>, although in reality
 it is <b>mmap()</b>.
 <p>
+If you compile this code to run it, you may get a pack of warnings about <b>sbrk()</b>
+being deprecated.  Ignore them.  
+<p>
 The second important thing is that <b>malloc()</b> has to do bookkeeping somehow, and one
 way to do that is to use the bytes before the pointer that it returns.  That is the topic
 of this lecture.</font>
