@@ -1,5 +1,5 @@
 UNIX> fb4
-sbrk(0) = 0x70f8
+sbrk(0) = 0x61a0
 Allocated 4 bytes.  buf = 0x61a8, buf[-1] = 0, buf[-2] = 16, buf[0] = 1000
 Allocated 8 bytes.  buf = 0x61b8, buf[-1] = 0, buf[-2] = 16, buf[0] = 1001
 Allocated 12 bytes.  buf = 0x61c8, buf[-1] = 0, buf[-2] = 24, buf[0] = 1002
