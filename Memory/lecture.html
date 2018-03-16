@@ -177,7 +177,7 @@ takes a look at the various memory regions of your program, while it is running.
 #include &lt;stdlib.h&gt;
 #include &lt;unistd.h&gt;
 
-typedef UI (unsigned long int) 
+typedef unsigned long int UI;
 
 <font color=blue>/* These are special variables that
    denote the end of the memory segments
@@ -229,6 +229,7 @@ int main(int argc, char **argv)
   printf("Code Addresses:\n");
   printf("main:   0x%lx\n", (UI) main);
   printf("proc_a: 0x%lx\n", (UI) proc_a);
+  printf("\n");
 
   printf("Global Variable Addresses:\n");
   printf("&A: 0x%lx\n", (UI) &A);
@@ -256,354 +257,105 @@ int main(int argc, char **argv)
 }
 </pre></td></table></center><p>
 
+Again, not all machines will allow this code to compile.  Linux-based machines are a pretty
+safe bet, though.  Go ahead and read the comments to the code above.  Basically, we are 
+printing out addresses of variables in each of the memory segments that I describe above.
+After that, we look at the file <b>/proc/<i>pid</i>/maps</b>, which lets you know
+about the memory mappings in the process with id <i>pid</i>.  
 
-(For more info on these variables, do <b>man etext</b>).
-
-<p>These are two external variables that are defined as follows:
-
-<pre>
-extern etext;
-extern end;
-</pre>
-
-Note that they are typeless.  You never use just
-"<b>etext</b>" and "<b>end</b>."  Instead, you use their
-addresses -- these point to the end of the text
-and globals segments respectively. 
-
-<p>Look at the program 
-<a href=testaddr1.c><b>testaddr1.c</b></a>.  
-This prints out
-the addresses of <b>etext</b> and <b>end</b>.  Then it prints
-out 6 values: 
-
-<UL>
-<LI><b>main</b> is a pointer to the first instruction of
-    the <b>main()</b> procedure.  This is simply a
-    location in the code segment, which should be 
-    familiar to you from the assembler lectures.
-<LI><b>I</b> is a global variable.  Thus <b>&I</b> should be an
-    address in the globals segment.
-<LI><b>i</b> is a local variable.  Thus <b>&i</b> should be an
-    address in the stack.
-<LI><b>argc</b> is an argument to <b>main()</b>.  Thus, <b>&argc</b>
-    should be an address in the stack.
-<LI><b>ii</b> is another local variable.  Thus, <b>&ii</b>
-    should be an address in the stack.  However,
-    <b>ii</b> is a pointer to memory that has been
-    <b>malloc</b>'d.  Thus, <b>ii</b> should be an address in
-    the heap.
-</UL>
-
-<p>When we run <b>testaddr1</b>, we get something like the following:
-
-<pre>
-UNIX> <b>testaddr1</b>
-&etext = 0x11843
-&end   = 0x21b5c
-
-main   = 0x10b50
-&I     = 0x21b54
-&i     = 0xffbee104
-&argc  = 0xffbee15c
-&ii    = 0xffbee100
-ii     = 0x21b70
-UNIX>
-</pre>
-
-So, what this says is that the code segment goes
-from 0x10000 to 0x11843.  The globals segment goes
-from 0x20000 to 0x21b5c.  The heap goes from 0x21b5c
-to some address greater than 0x21b70 (since <b>ii</b>
-allocated 4 bytes starting at 0x21b70).  The stack
-goes from some address less than 0xefffe8f8 to
-0xefffffff.  All values that are printed by
-<b>testaddr1</b> make sense.  
-
-<hr>
-Now, look at 
-<a href=testaddr2.c><b>testaddr2.c</b></a>.  
-
-<p>This is the first really gross piece of C code
-that you'll see.  What it does is print out
-<b>&etext</b> and <b>&end</b>, and then prompt the user
-for an address in hexadecimal.  It puts that
-address into the pointer variable <b>s</b>.  You should
-never do this unless you are writing code like
-this which is testing memory.  The first thing
-that it does with <b>s</b> is try to read from that
-memory location <b>(c = *s)</b>.  Then it tries to write
-to the memory location <b>(*s = c)</b>.  This is a way
-to see which memory locations are legal.  
-
-<p>So, lets try it out with an illegal memory value of zero:
-
-<pre>
-UNIX> <b>testaddr2</b>
-&etext = 0x1191b
-&end   = 0x21d90
-
-Enter memory location in hex (start with 0x): <b>0x0</b>
-Reading 0x0:  Segmentation Fault
-UNIX> 
-</pre>
-
-When we tried to read from memory location zero,
-we got a seg fault.  This is because memory
-location zero is in the void -- the hardware
-recognized this by asking the operating system,
-and then generating a segmentation violation. 
-
-<p>Memory locations 0x0 to 0xffff are illegal -- if
-we try any address in that range, we will get a
-segmentation violation: 
-
-<pre>
-UNIX> <b>testaddr2</b>
-&etext = 0x1191b
-&end   = 0x21d90
-
-Enter memory location in hex (start with 0x): <b>0xffff</b>
-Reading 0xffff:  Segmentation Fault
-UNIX> <b>testaddr2</b>
-&etext = 0x1191b
-&end   = 0x21d90
-
-Enter memory location in hex (start with 0x): <b>0x4abc</b>
-Reading 0x4abc:  Segmentation Fault
-UNIX> 
-</pre>
-
-<p>Memory location 0x10000 is in the code segment.  This should be a legal
-address:
-
-<pre>
-UNIX> <b>testaddr2</b>
-&etext = 0x1191b
-&end   = 0x21d90
-
-Enter memory location in hex (start with 0x): <b>0x10000</b>
-Reading 0x10000:  127
-Writing 127 back to  0x10000:  Segmentation Fault
-UNIX> 
-</pre>
-
-<p>You'll note that we were able to read from 0x10000 -- it gave us the
-byte 127, which begins some instruction in the program.  However,
-we got a seg fault when we wrote to 0x10000.  This is by design:
-The code segment is read-only.  You can read from it, but you can't
-write to it.  This makes sense, because you can't change your program
-while it's running -- instead you have to recompile it, and rerun it.
-
-<p>Now, what if we try memory location 0x11fff?  This is above &etext, so
-it should be outside of the code segment:
-
-<pre>
-UNIX> <b>testaddr2</b>
-&etext = 0x1191b
-&end   = 0x21d90
-
-Enter memory location in hex (start with 0x): <b>0x11fff</b>
-Reading 0x11fff:  -48
-Writing -48 back to  0x11fff:  Segmentation Fault
-UNIX>
-</pre>
-
-You'll note that even though 0x11fff is an address
-outside the code segment, we're still allowed to
-read from it.  This is because the hardware
-checks the with operating system to see if an
-address's page has been allocated.  Since page 8
-(0x10000 - 0x11fff) has been allocated for the code
-segment, the hardware treats any address between 0x10000 and 0x11fff
-as a legal address.  You can read from it, but its value is
-meaningless.   
-
-<p>Now, pages 9 to 15 are unreadable again:
-
-<pre>
-UNIX> <b>testaddr2</b>
-&etext = 0x1191b
-&end   = 0x21d90
-
-Enter memory location in hex (start with 0x): <b>0x12000</b>
-Reading 0x12000:  Segmentation Fault
-UNIX> <b>testaddr2</b>
-&etext = 0x1191b
-&end   = 0x21d90
-
-Enter memory location in hex (start with 0x): <b>0x1f000</b>
-Reading 0x1f000:  Segmentation Fault
-UNIX> 
-</pre>
-
-<p>The globals starts at 0x20000, so we see that the 16th page is
-readable and writable:
-
-<pre>
-UNIX> <b>testaddr2</b>
-&etext = 0x1191b
-&end   = 0x21d90
-
-Enter memory location in hex (start with 0x): <b>0x20000</b>
-Reading 0x20000:  127
-Writing 127 back to  0x20000:  ok
-UNIX>          
-</pre>
-
-<p>We can read from and write to any location (0x20000 to 0x21fff)
-in this page.  The next page (starting at 0x22000) is 
-unreachable:
-
-<pre>
-UNIX> <b>testaddr2</b>
-&etext = 0x1191b
-&end   = 0x21d90
-
-Enter memory location in hex (start with 0x): <b>0x21dff</b>
-Reading 0x21dff:  0
-Writing 0 back to  0x21dff:  ok
-UNIX> <b>testaddr2</b>
-&etext = 0x1191b
-&end   = 0x21d90
-
-Enter memory location in hex (start with 0x): <b>0x22000</b>
-Reading 0x22000:  Segmentation Fault
-UNIX> 
-</pre>
-
-<p>What this tells us is that the globals go from 0x20000 to 0x21d90.  The
-heap goes from 0x21d90 up to some higher address in the same page.
-
-<hr>
-<h1>Sbrk(0)</h1>
-
-<i>As with other parts of this lecture, <b>sbrk()</b> has grown to obsolescence.
-Please see the next set of lecture notes on <b>malloc()</b> for some more current
-information.</i>
 <p>
-<b>sbrk()</b> is a system call that we will get into in
-a few lectures.  <b>sbrk(0)</b> returns to the user the
-current end of the heap.  Since we can keep
-calling <b>malloc()</b>, <b>sbrk(0)</b> can change over time.
-<a href=testaddr3.c><b>testaddr3.c</b></a>
-shows the value of <b>sbrk(0)</b> -- note it
-is in page 16 (0x20000 - 0x21fff).  Since the hardware performs
-its check in 8192-byte intervals, we can get at
-any byte in page 16, even though <b>sbrk(0)</b> returns
-0x20c78: 
+We run the program on a Raspberry Pi, and we get a lot of information:
 
 <pre>
-UNIX> <b>testaddr3</b>
-&etext = 0x11993
-&end   = 0x21e18
-sbrk(0)= 0x21e18
-&c     = 0xffbee103
+UNIX> <font color=darkred><b>./look_at_memory</b></font>
+Page size: 4096
 
-Enter memory location in hex (start with 0x): <b>0x21fff</b>
-Reading 0x21fff:  0
-Writing 0 back to  0x21fff:  ok
-UNIX> 
+&etext: 0x107f4
+&edata: 0x20a74
+&end:   0x20a80
+
+Code Addresses:
+main:   0x1058c
+proc_a: 0x10578
+
+Global Variable Addresses:
+&A: 0x20a6c
+&B: 0x20a70
+&X: 0x20a78
+&Y: 0x20a7c
+
+Heap Address:
+buf: 0x12cb008
+
+Stack Addresses:
+&i:    0x7ebe3b3c
+&buf:  0x7ebe3b38
+&argc: 0x7ebe3b34
+
+00010000-00011000 r-xp 00000000 00:22 126617690  /mnt/nfs/plank/cs360-lecture-notes/Memory/look_at_memory
+00020000-00021000 rw-p 00000000 00:22 126617690  /mnt/nfs/plank/cs360-lecture-notes/Memory/look_at_memory
+012cb000-012ec000 rw-p 00000000 00:00 0          [heap]
+76d9c000-76ec7000 r-xp 00000000 b3:07 524518     /lib/arm-linux-gnueabihf/libc-2.19.so
+76ec7000-76ed7000 ---p 0012b000 b3:07 524518     /lib/arm-linux-gnueabihf/libc-2.19.so
+76ed7000-76ed9000 r--p 0012b000 b3:07 524518     /lib/arm-linux-gnueabihf/libc-2.19.so
+76ed9000-76eda000 rw-p 0012d000 b3:07 524518     /lib/arm-linux-gnueabihf/libc-2.19.so
+76eda000-76edd000 rw-p 00000000 00:00 0 
+76ef6000-76efb000 r-xp 00000000 b3:07 3540510    /usr/lib/arm-linux-gnueabihf/libarmmem.so
+76efb000-76f0a000 ---p 00005000 b3:07 3540510    /usr/lib/arm-linux-gnueabihf/libarmmem.so
+76f0a000-76f0b000 rw-p 00004000 b3:07 3540510    /usr/lib/arm-linux-gnueabihf/libarmmem.so
+76f0b000-76f2b000 r-xp 00000000 b3:07 524429     /lib/arm-linux-gnueabihf/ld-2.19.so
+76f35000-76f3a000 rw-p 00000000 00:00 0 
+76f3a000-76f3b000 r--p 0001f000 b3:07 524429     /lib/arm-linux-gnueabihf/ld-2.19.so
+76f3b000-76f3c000 rw-p 00020000 b3:07 524429     /lib/arm-linux-gnueabihf/ld-2.19.so
+7ebc3000-7ebe4000 rwxp 00000000 00:00 0          [stack]
+7ec2a000-7ec2b000 r-xp 00000000 00:00 0          [sigpage]
+7ec2b000-7ec2c000 r--p 00000000 00:00 0          [vvar]
+7ec2c000-7ec2d000 r-xp 00000000 00:00 0          [vdso]
+ffff0000-ffff1000 r-xp 00000000 00:00 0          [vectors]
+UNIX> <font color=darkred><b></b></font>
 </pre>
 
-We haven't called <b>malloc()</b> in <b>testaddr3.c</b>.
-This is the reason why <b>&end</b> and <b>sbrk(0)</b> return
-the same value.  In <a href=testaddr3a.c><b>testaddr3a.c</b></a>
-we make a <b>malloc()</b> call in the 
-beginning of the program, and as you see, 
-<b>&end</b> and <b>sbrk(0)</b> return different values:
+From this program, we can deduce that our program's address space looks as in the picture below:
+
+<p><center><table border=3><td><img src=Drawings.jpg></td></table></center><p>
+
+You'll note that every memory address from <tt>0x0</tt. to <tt>0xffffffff</tt> is accounted
+for.  You'll also note how the <b>printf()</b> statements from the program match the 
+picture.  For example, <b>A</b> and <b>B</b> have values between <tt>0x20000</tt>
+(the beginning of the globals) and <tt>0x20ffff</tt>.  They also have values lower than
+<b>&amp;edata</b>, which is right, because they are initialized by the program.
+<p>
+<b>X</b> and <b>X</b> also have values between <tt>0x20000</tt>
+and <tt>0x20ffff</tt>.  They are uninitialized, so they belong in the "bss" segment.
+Accordingly, their values are between <b>&amp;edata</b> and 
+<b>&amp;end</b>.
+<p>
+You should also see that <b>main</b> and <b>proc_a</b> are in the code segment, 
+<b>buf</b> is in the heap, and <b>&amp;i</b>, <b>&amp;buf</b> and <b>&amp;argc</b> are
+all in the code segment.  
+<p>
+All of the addresses labeld <b>NULL</b> will give you segmentation violations if you 
+try to access them.
+<p>
+It is slightly unfortunate that the heap and stack addresses will change from run to run:
 
 <pre>
-UNIX> <b>testaddr3a</b>
-&etext = 0x119a3
-&end   = 0x21e28
-sbrk(0)= 0x23e28
-&c     = 0xffbee103
-
-Enter memory location in hex (start with 0x): <b>0x23fff</b>
-Reading 0x23fff:  0
-Writing 0 back to  0x23fff:  ok
-UNIX> <b>testaddr3a</b>
-&etext = 0x119a3
-&end   = 0x21e28
-sbrk(0)= 0x23e28
-&c     = 0xffbee103
-
-Enter memory location in hex (start with 0x): <b>0x24000</b>
-Reading 0x24000:  Segmentation Fault
-UNIX> 
+UNIX> <font color=darkred><b>./look_at_memory | grep buf</b></font>
+buf: 0x53b008
+&buf:  0x7e98eb38
+UNIX> <font color=darkred><b>./look_at_memory | grep buf</b></font>
+buf: 0x1274008
+&buf:  0x7efc4b38
+UNIX> <font color=darkred><b>./look_at_memory | grep buf</b></font>
+buf: 0x19df008
+&buf:  0x7eec7b38
+UNIX> <font color=darkred><b></b></font>
 </pre>
+
+The reason for this is security.  Be ready for it.
 
 <hr>
-<h1>The stack</h1>
-
-So, where's the beginning of the stack?  If we try addresses above
-0xffbee103 in <b>testaddr3</b>, we see that most of them are legal:
-
-<pre>
-UNIX> <b>testaddr3</b>
-&etext = 0x11993
-&end   = 0x21e18
-sbrk(0)= 0x21e18
-&c     = 0xffbee103
-
-Enter memory location in hex (start with 0x): <b>0xffb00000</b>
-Reading 0xffb00000:  0
-Writing 0 back to  0xffb00000:  ok
-UNIX> <b>testaddr3</b>
-&etext = 0x11993
-&end   = 0x21e18
-sbrk(0)= 0x21e18
-&c     = 0xffbee103
-
-Enter memory location in hex (start with 0x): <b>0xff3f0000</b>
-Reading 0xff3f0000:  0
-Writing 0 back to  0xff3f0000:  ok
-UNIX> <b>testaddr3</b>
-&etext = 0x11993
-&end   = 0x21e18
-sbrk(0)= 0x21e18
-&c     = 0xffbee103
-
-Enter memory location in hex (start with 0x): <b>0xff3effff</b>
-Reading 0xff3effff:  Segmentation Fault
-UNIX> 
-</pre>
-
-What gives?  As it turns out, the operating system allocates all
-pages from 0xff3f0000 to the bottom of the stack.  Where is the
-bottom of the stack?  Let's probe:
-
-<pre>
-UNIX> <b>testaddr3</b>
-&etext = 0x11993
-&end   = 0x21e18
-sbrk(0)= 0x21e18
-&c     = 0xffbee103
-
-Enter memory location in hex (start with 0x): <b>0xffbeffff</b>
-Reading 0xffbeffff:  0
-Writing 0 back to  0xffbeffff:  ok
-UNIX> <b>testaddr3</b>
-&etext = 0x11993
-&end   = 0x21e18
-sbrk(0)= 0x21e18
-&c     = 0xffbee103
-
-Enter memory location in hex (start with 0x): <b>0xffbf0000</b>
-Reading 0xffbf0000:  Segmentation Fault
-UNIX>
-</pre>
-So the stack goes from 0xff3f0000 to 0xffbeffff.  That is 
-roughly 8 megabytes.
-<p>You can print out the default stack size, and change it using 
-the <b>limit</b> command (read the man page):
-<pre>
-UNIX> <b>limit</b>
-...
-stacksize       8192 kbytes
-...
-</pre>
+<font color=red>Still writing the rest of this -- what is below is stale.</font>
 
 Whenever you call a procedure, it allocates local
 variables and arguments (plus a few other things)
