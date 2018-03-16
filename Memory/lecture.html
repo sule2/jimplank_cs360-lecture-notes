@@ -46,8 +46,9 @@ pointer with a value of 0, you will get a segmentation violation.
 This is Unix's way of telling you that that memory location is
 illegal.
 
-<p>For example, the following program will generate a segmentation violation.
-(<b><a href=segfault.c>segfault.c</a></b>):
+<p>For example, the following program 
+(<b><a href=segfault.c>segfault.c</a></b>)
+will generate a segmentation violation.
 
 <p><center><table border=3 cellpadding=3><td><pre>
 int main()
@@ -157,31 +158,81 @@ is not.  This results in a segmentation violation.
 
 <p>The exact mechanics of paging are covered in
 classes on Operating Systems.  I won't go into them
-further here. 
-
-<font color=red>I'M IN THE MIDDLE OF EDITING.  I HAVE STOPPED HERE.</font>
-
-<p>As it turns out, the first 8 pages on our hydra machines
-are void.  This means that trying to read to or
-write from any address from 0 to 0xffff will
-result in a segmentation violation. 
-
-<p>The next page (starting with address 0x10000)
-starts the code segment.  This segment ends at
-the variable <b>&etext</b>, which I'll go over in a bit.
-The globals segment starts at page 0x20000.  It goes until
-the variable <b>&end</b>.  The heap starts immediately
-after <b>&end</b>, and goes up to <b>sbrk(0)</b>, which I'll
-talk about still later.  The stack ends with
-address 0xefffffff.  Its beginning changes with
-the different procedure calls you make.  We'll go
-over this more later in this lecture.  Every page
-between the end of the heap 
-and the beginning of the stack is void, and will generate a
-segmentation violation upon accessing.
+further here.  What you should understand is that the hardware and operating system
+manage memory at a page granularity, and that when you want to use memory, to read it, 
+write it, or execute instructions from it, the hardware checks the page on which the
+memory resides, to make sure you have the permissions to use it.  If you don't, you'll
+get a segmentation violation.
 
 <hr>
-<h1>&etext and &end.</h1>
+<h1>Looking at Memory Regions of your Program</h1>
+
+The program 
+<b><a href=look_at_memory.c>look_at_memory.c</a></b>
+takes a look at the various memory regions of your program, while it is running.
+
+<p><center><table border=3 cellpadding=3><td><pre>
+#include &lt;sys/types.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+
+extern end;
+extern etext;
+extern edata;
+
+int A = 4;
+int X;
+int B = 6;
+int Y;
+
+void proc_a()
+{
+}
+
+int main(int argc, char **argv)
+{
+  int i, j;
+  int *ii;
+  char buf[200];
+
+  printf("Page size: %d\n", getpagesize());
+  printf("\n");
+
+  printf("&etext: 0x%x\n", (unsigned long int) &etext);
+  printf("&edata: 0x%x\n", (unsigned long int) &edata);
+  printf("&end:   0x%x\n", (unsigned long int) &end);
+  printf("\n");
+
+  printf("Code Addresses:\n");
+  printf("main:   0x%x\n", main);
+  printf("proc_a: 0x%x\n", proc_a);
+
+  printf("Global Variable Addresses:\n");
+  printf("&A: 0x%x\n", &A);
+  printf("&B: 0x%x\n", &B);
+  printf("&X: 0x%x\n", &X);
+  printf("&Y: 0x%x\n", &Y);
+  printf("\n");
+
+  printf("Heap Addresses:\n");
+  ii = (int *) malloc(sizeof(int));
+  printf("ii: 0x%x\n", ii);
+  printf("\n");
+
+  printf("Stack Addresses:\n");
+  printf("&i:    0x%x\n", &i);
+  printf("&j:    0x%x\n", &j);
+  printf("&argc: 0x%x\n", &argc);
+  printf("\n");
+
+  sprintf(buf, "cat /proc/%d/maps", getpid());
+  system(buf);
+  return 0;
+}
+
+</pre></td></table></center><p>
+
 
 (For more info on these variables, do <b>man etext</b>).
 
