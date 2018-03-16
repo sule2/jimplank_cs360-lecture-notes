@@ -171,66 +171,89 @@ The program
 <b><a href=look_at_memory.c>look_at_memory.c</a></b>
 takes a look at the various memory regions of your program, while it is running.
 
-<p><center><table border=3 cellpadding=3><td><pre>
+<p><center><table border=3 cellpadding=3><td valign=top><pre>
 #include &lt;sys/types.h&gt;
 #include &lt;stdio.h&gt;
 #include &lt;stdlib.h&gt;
 #include &lt;unistd.h&gt;
 
+typedef UI (unsigned long int) 
+
+<font color=blue>/* These are special variables that
+   denote the end of the memory segments
+   for the code ("text"), initialized
+   global variables ("data") and
+   uninitialized global variables ("bss").
+   */</font>
+
 extern end;
 extern etext;
 extern edata;
+
+<font color=blue>/* Here are four global variables.  A
+   and B belong to the "data", and X and Y
+   belong to the "bss".  */</font>
 
 int A = 4;
 int X;
 int B = 6;
 int Y;
 
+<font color=blue>/* Proc_a and main should reside in the
+   "text" segment. */</font>
+
 void proc_a()
 {
 }
 
+<font color=blue>/* And of course i and buf will belong
+   on the stack.  I will call malloc()
+   to set buf equal to an address in 
+   the heap. */</font>
+</pre></td><td valign=top><pre>
 int main(int argc, char **argv)
 {
-  int i, j;
-  int *ii;
-  char buf[200];
+  int i;
+  char *buf;
+
+  buf = (char *) malloc(200);
 
   printf("Page size: %d\n", getpagesize());
   printf("\n");
 
-  printf("&etext: 0x%x\n", (unsigned long int) &etext);
-  printf("&edata: 0x%x\n", (unsigned long int) &edata);
-  printf("&end:   0x%x\n", (unsigned long int) &end);
+  printf("&etext: 0x%lx\n", (UI) &etext);
+  printf("&edata: 0x%lx\n", (UI) &edata);
+  printf("&end:   0x%lx\n", (UI) &end);
   printf("\n");
 
   printf("Code Addresses:\n");
-  printf("main:   0x%x\n", main);
-  printf("proc_a: 0x%x\n", proc_a);
+  printf("main:   0x%lx\n", (UI) main);
+  printf("proc_a: 0x%lx\n", (UI) proc_a);
 
   printf("Global Variable Addresses:\n");
-  printf("&A: 0x%x\n", &A);
-  printf("&B: 0x%x\n", &B);
-  printf("&X: 0x%x\n", &X);
-  printf("&Y: 0x%x\n", &Y);
+  printf("&A: 0x%lx\n", (UI) &A);
+  printf("&B: 0x%lx\n", (UI) &B);
+  printf("&X: 0x%lx\n", (UI) &X);
+  printf("&Y: 0x%lx\n", (UI) &Y);
   printf("\n");
 
-  printf("Heap Addresses:\n");
-  ii = (int *) malloc(sizeof(int));
-  printf("ii: 0x%x\n", ii);
+  printf("Heap Address:\n");
+  printf("buf: 0x%lx\n", (UI) buf);
   printf("\n");
 
   printf("Stack Addresses:\n");
-  printf("&i:    0x%x\n", &i);
-  printf("&j:    0x%x\n", &j);
-  printf("&argc: 0x%x\n", &argc);
+  printf("&i:    0x%lx\n", (UI) &i);
+  printf("&buf:  0x%lx\n", (UI) &buf);
+  printf("&argc: 0x%lx\n", (UI) &argc);
   printf("\n");
+
+  <font color=blue>/* Finally, print the addressses as 
+     recorded in the directory "/proc". */</font>
 
   sprintf(buf, "cat /proc/%d/maps", getpid());
   system(buf);
   return 0;
 }
-
 </pre></td></table></center><p>
 
 
