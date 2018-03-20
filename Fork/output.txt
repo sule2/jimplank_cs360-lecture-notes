@@ -1,0 +1,4 @@
+Before forking: j (Address 0x7ffdb989bd88) = 200.   K (Address 0x601048) = 300
+Child after:    j (Address 0x7ffdb989bd88) = 201.   K (Address 0x601048) = 301
+Before forking: j (Address 0x7ffdb989bd88) = 200.   K (Address 0x601048) = 300
+Parent after:   j (Address 0x7ffdb989bd88) = 200.   K (Address 0x601048) = 300
