@@ -114,7 +114,7 @@ int main(int argc, char **argv)
        and then print out A, i and buf. */
 
     } else if (c == 'W') {
-      printf("Writing 0xff to 0x%x\n", ptr);
+      printf("Writing 0x67 to 0x%x\n", ptr);
       *ptr = 0x67;
       printf("A is now 0x%x\n", A);
       printf("i is now 0x%x\n", i);
