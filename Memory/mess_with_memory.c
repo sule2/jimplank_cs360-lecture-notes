@@ -85,31 +85,44 @@ int main(int argc, char **argv)
   sprintf(buf, "cat /proc/%d/maps", getpid());
   system(buf);
 
-  printf("\n");
-  printf("Enter an address (with 0x), and R|W|X: ");
-  fflush(stdout);
-
   i = 0xabcd;
 
-  if (scanf("0x%x %c", &ptr, &c) != 2 || strchr("RWX", c) == NULL) {
-    printf("Failed\n");
-    exit(0);
-  }
-
-  if (c == 'R') {
-    printf("Reading 0x%x\n", (UI) ptr);
+  while (1) {
+    printf("\n");
+    printf("Enter an address (with 0x), and R|W|X: ");
     fflush(stdout);
-    c = *ptr;
-    printf("Read 0x%x\n", c); 
-  } else if (c == 'W') {
-    printf("Writing 0xff to 0x%x\n", ptr);
-    *ptr = 0x67;
-    printf("A is now 0x%x\n", A);
-    printf("i is now 0x%x\n", i);
-    printf("buf is now %s\n", buf);
-  } else if (c == 'X') {
-    memcpy(&proc, &ptr, sizeof(void *));
-    proc();
+  
+    /* From stdin, read a pointer value into ptr, and a character R, W, or X into c. */
+
+    if (scanf("0x%x %c", &ptr, &c) != 2 || strchr("RWX", c) == NULL) {
+      printf("Exiting\n");
+      exit(0);
+    }
+  
+    /* If c is 'R', read the character at the pointer. */
+
+    if (c == 'R') {
+      printf("Reading 0x%x\n", (UI) ptr);
+      fflush(stdout);
+      c = *ptr;
+      printf("Read 0x%x\n", c); 
+  
+    /* If c is 'W', write the value 0x67 to the byte at the pointer, 
+       and then print out A, i and buf. */
+
+    } else if (c == 'W') {
+      printf("Writing 0xff to 0x%x\n", ptr);
+      *ptr = 0x67;
+      printf("A is now 0x%x\n", A);
+      printf("i is now 0x%x\n", i);
+      printf("buf is now %s\n", buf);
+
+    /* If c is 'X', then treat ptr as a procedure, and call it. */
+
+    } else if (c == 'X') {
+      memcpy(&proc, &ptr, sizeof(void *));
+      proc();
+    }
   }
 
   return 0;
