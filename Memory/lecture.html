@@ -319,25 +319,27 @@ From this program, we can deduce that our program's address space looks as in th
 
 <p><center><table border=3><td><img src=Drawings.jpg></td></table></center><p>
 
-You'll note that every memory address from <tt>0x0</tt. to <tt>0xffffffff</tt> is accounted
+You'll note that every memory address from <tt>0x0</tt> to <tt>0xffffffff</tt> is accounted
 for.  You'll also note how the <b>printf()</b> statements from the program match the 
 picture.  For example, <b>A</b> and <b>B</b> have values between <tt>0x20000</tt>
-(the beginning of the globals) and <tt>0x20ffff</tt>.  They also have values lower than
+(the beginning of the globals) and <tt>0x20ffff</tt> (the end of the globals).  
+They also have values lower than
 <b>&amp;edata</b>, which is right, because they are initialized by the program.
 <p>
-<b>X</b> and <b>X</b> also have values between <tt>0x20000</tt>
+<b>X</b> and <b>Y</b> also have values between <tt>0x20000</tt>
 and <tt>0x20ffff</tt>.  They are uninitialized, so they belong in the "bss" segment.
 Accordingly, their values are between <b>&amp;edata</b> and 
 <b>&amp;end</b>.
 <p>
 You should also see that <b>main</b> and <b>proc_a</b> are in the code segment, 
 <b>buf</b> is in the heap, and <b>&amp;i</b>, <b>&amp;buf</b> and <b>&amp;argc</b> are
-all in the code segment.  
+all in the stack segment.  
 <p>
-All of the addresses labeld <b>NULL</b> will give you segmentation violations if you 
+All of the addresses labeled <b>NULL</b> will give you segmentation violations if you 
 try to access them.
 <p>
-It is slightly unfortunate that the heap and stack addresses will change from run to run:
+It is slightly unfortunate that the heap addresses
+and stack addresses will change from run to run:
 
 <pre>
 UNIX> <font color=darkred><b>./look_at_memory | grep buf</b></font>
@@ -355,6 +357,77 @@ UNIX> <font color=darkred><b></b></font>
 The reason for this is security.  Be ready for it.
 
 <hr>
+<h3>Reading, Writing and Executing Memory Regions</h3>
+
+The program 
+<b><a href=mess_with_memory.c>mess_with_memory.c</a></b> changes
+<b><a href=look_at_memory.c>look_at_memory.c</a></b> in a few minor ways.
+First, it defines the procedure <b>proc_a</b> to simply print "Hi":
+
+<p><center><table border=3 cellpadding=3><td><pre>
+void proc_a()
+{
+  printf("Hi\n");
+}
+</pre></td></table></center><p>
+
+Next, it defines three more variables in <b>main()</b>.  These are <b>ptr</b>, 
+<b>c</b> and <proc</b>:
+<p><center><table border=3 cellpadding=3><td><pre>
+  char *ptr;
+  char c;
+  void (*proc)();
+</pre></td></table></center><p>
+
+The only subtle one is <b>proc</b> -- it is a pointer to a function, which you 
+can set and execute at runtime.  
+<p>
+At the end of <b>mess_with_memory</b>, we do some dangerous stuff.  In fact, if 
+you have ever heard someone say that C is a dangerous or unsafe language, well
+here's your proof!
+
+<p><center><table border=3 cellpadding=3><td><pre>
+
+  <font color=blue>/* All the previous code from look_at_memory.c is here. */</font>
+
+  i = 0xabcd;
+
+  while (1) {
+    printf("\n");
+    printf("Enter an address (with 0x), and R|W|X: ");
+    fflush(stdout);
+  
+    /* From stdin, read a pointer value into ptr, and a character R, W, or X into c. */
+  
+    if (scanf("0x%x %c", &ptr, &c) != 2 || strchr("RWX", c) == NULL) {
+      printf("Exiting\n");
+      exit(0);
+    }
+  
+    /* If c is 'R', attempt to read 
+  
+    if (c == 'R') {
+      printf("Reading 0x%x\n", (UI) ptr);
+      fflush(stdout);
+      c = *ptr;
+      printf("Read 0x%x\n", c); 
+  
+    } else if (c == 'W') {
+      printf("Writing 0xff to 0x%x\n", ptr);
+      *ptr = 0x67;
+      printf("A is now 0x%x\n", A);
+      printf("i is now 0x%x\n", i);
+      printf("buf is now %s\n", buf);
+    } else if (c == 'X') {
+      memcpy(&proc, &ptr, sizeof(void *));
+      proc();
+    }
+  }
+
+  return 0;
+}
+</pre></td></table></center><p>
+
 <font color=red>Still writing the rest of this -- what is below is stale.</font>
 
 Whenever you call a procedure, it allocates local
