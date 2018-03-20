@@ -384,7 +384,7 @@ can set and execute at runtime.
 <p>
 At the end of <b>mess_with_memory</b>, we do some dangerous stuff.  In fact, if 
 you have ever heard someone say that C is a dangerous or unsafe language, well
-here's your proof!
+here's your proof!  Read the comments to see what the code is doing.
 
 <p><center><table border=3 cellpadding=3><td><pre>
 
@@ -397,27 +397,33 @@ here's your proof!
     printf("Enter an address (with 0x), and R|W|X: ");
     fflush(stdout);
   
-    /* From stdin, read a pointer value into ptr, and a character R, W, or X into c. */
-  
+    <font color=blue>/* From stdin, read a pointer value into ptr, and a character R, W, or X into c. */</font>
+
     if (scanf("0x%x %c", &ptr, &c) != 2 || strchr("RWX", c) == NULL) {
       printf("Exiting\n");
       exit(0);
     }
   
-    /* If c is 'R', attempt to read 
-  
+    <font color=blue>/* If c is 'R', read the character at the pointer. */</font>
+
     if (c == 'R') {
       printf("Reading 0x%x\n", (UI) ptr);
       fflush(stdout);
       c = *ptr;
       printf("Read 0x%x\n", c); 
   
+    <font color=blue>/* If c is 'W', write the value 0x67 to the byte at the pointer, 
+       and then print out A, i and buf. */</font>
+
     } else if (c == 'W') {
-      printf("Writing 0xff to 0x%x\n", ptr);
+      printf("Writing 0x67 to 0x%x\n", ptr);
       *ptr = 0x67;
       printf("A is now 0x%x\n", A);
       printf("i is now 0x%x\n", i);
       printf("buf is now %s\n", buf);
+
+    <font color=blue>/* If c is 'X', then treat ptr as a procedure, and call it. */</font>
+
     } else if (c == 'X') {
       memcpy(&proc, &ptr, sizeof(void *));
       proc();
@@ -428,83 +434,290 @@ here's your proof!
 }
 </pre></td></table></center><p>
 
-<font color=red>Still writing the rest of this -- what is below is stale.</font>
-
-Whenever you call a procedure, it allocates local
-variables and arguments (plus a few other things)
-on the stack.  Whenever you return from a
-procedure, those varables are popped off the
-stack.  So, look at 
-<a href=testaddr4.c><b>testaddr4.c</b></a>.  
-It has <b>main()</b>
-call itself recursively as many times as there are
-arguments.  You'll see that at each recursive
-call, the addresses of <b>argc</b> and <b>argv</b> and the
-local variable <b>i</b> are smaller addresses -- this is because
-each time the procedure is called, the stack
-grows upward to allocate its arguments and
-local variables.  You've seen this already in the assembler
-lectures.
+So, what the program is allowing the user to do is enter an address, and then either
+read from, write to, or execute code from that address.  Let's give it a try.  It is 
+unfortunate that the memory addresses will change from when we called <b>look_at_memory</b>
+above.  I'm only going to include output that is important to understanding this part of
+the lecture:
 
 <pre>
-UNIX> <b>testaddr4</b>
-argc = 1.  &argc = 0xffbee15c, &argv = 0xffbee160, &i = 0xffbee104
-argc = 0.  &argc = 0xffbee0e4, &argv = 0xffbee0e8, &i = 0xffbee08c
-UNIX> <b>testaddr4 v</b>
-argc = 2.  &argc = 0xffbee154, &argv = 0xffbee158, &i = 0xffbee0fc
-argc = 1.  &argc = 0xffbee0dc, &argv = 0xffbee0e0, &i = 0xffbee084
-argc = 0.  &argc = 0xffbee064, &argv = 0xffbee068, &i = 0xffbee00c
-UNIX> <b>testaddr4 v o l s</b>
-argc = 5.  &argc = 0xffbee144, &argv = 0xffbee148, &i = 0xffbee0ec
-argc = 4.  &argc = 0xffbee0cc, &argv = 0xffbee0d0, &i = 0xffbee074
-argc = 3.  &argc = 0xffbee054, &argv = 0xffbee058, &i = 0xffbedffc
-argc = 2.  &argc = 0xffbedfdc, &argv = 0xffbedfe0, &i = 0xffbedf84
-argc = 1.  &argc = 0xffbedf64, &argv = 0xffbedf68, &i = 0xffbedf0c
-argc = 0.  &argc = 0xffbedeec, &argv = 0xffbedef0, &i = 0xffbede94
-UNIX> <b></b>
+UNIX> <font color=darkred><b>./mess_with_memory</b></font>
+&etext: 0x10b3c   <font color=blue> I'm deleting a bunch of lines here, to make it clearer</font>
+&edata: 0x20e80
+&end:   0x20e94
+
+Code Addresses:
+main:   0x1072c
+proc_a: 0x10714
+
+Global Variable Addresses:
+&A: 0x20e78
+
+Heap Address:
+buf: 0x1685008
+
+Stack Addresses:
+&i:    0x7eadeb3c
+
+00010000-00011000 r-xp 00000000 00:22 126617872  /mnt/nfs/plank/cs360-lecture-notes/Memory/mess_with_memory
+00020000-00021000 rw-p 00000000 00:22 126617872  /mnt/nfs/plank/cs360-lecture-notes/Memory/mess_with_memory
+01685000-016a6000 rw-p 00000000 00:00 0          [heap]
+7eabe000-7eadf000 rwxp 00000000 00:00 0          [stack]
+
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x20e78 R</b></font>
+Reading 0x20e78
+Read 0x4
+
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x7eadeb3c R</b></font>
+Reading 0x7eadeb3c
+Read 0xcd
+
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x7eadeb3d R</b></font>
+Reading 0x7eadeb3d
+Read 0xab
+
+Enter an address (with 0x), and R|W|X: 0x1685008 R
+Reading 0x1685008
+Read 0x30
 </pre>
 
-Now, lets break the stack.  This can be done by writing a program 
-that allocates too much stack memory.  One such program is in 
-<a href=breakstack1.c><b>breakstack1.c</b></a>.  
-It performs infinite recursion, and at each recursive step it allocates
-10000 bytes of stack memory in the variable <b>iptr</b>.  When you run this,
-you'll see that you get a segmentation violation when the recursive
-call is made and the stack is about to dip below 0xff3f0000:
-
-<pre>
-UNIX> <b>breakstack1</b>
-...
-&c     = 0xff3fa347, iptr = 0xff3f7c30  ...  ok
-&c     = 0xff3f7bbf, iptr = 0xff3f54a8  ...  ok
-&c     = 0xff3f5437, iptr = 0xff3f2d20  ...  ok
-Segmentation Fault
-UNIX> 
-</pre>
-
-Often when you have infinite recursion and overflow the
-stack, you get "illegal instruction" instead of Segmenation fault.
-I can't explain this in detail-- just be ready for it...
-
-<p>The second way to break the stack is to simply allocate too much local
-memory.  E.g. look at 
-<a href=breakstack2.c><b>breakstack2.c</b></a>.  
-It tries to allocate 10M of memory
-in the stack.   It segfaults in <b>a</b> because it tries to 
-reference smaller memory addresses than 0xff3f0000.  Exactly where
-does the seg fault happen?  Think about it -- answer below.
+All of these are straightforward -- we are reading the first byte of <b>A</b>, which,
+because the Raspberry Pi is little endian, equals 4.  We set <b>i</b> to be <tt>0xabcd</tt>, so
+its first byte is <tt>0xcd</tt> and its second byte is <tt>0xab</tt>.  Finally, <tt>0x1685008</tt>
+is the value of <b>buf</b>, which is a heap address.  When we read it, we get <tt>0x30</tt>,
+which is the ASCII character code for '0', which is the first character in the string
+that we just read from the terminal.
 <p>
-The segfault happens in <b>a</b> when the code attempts to push
-<b>iptr</b> on the stack for the <b>printf</b> call.  This is because
-the stack pointer is pointing to the void.  Had we not referenced
-anything at the stack pointer, our program should have worked.  For
-example, try 
-<a href=breakstack3.c><b>breakstack3.c</b></a>.  
+
+We can write to these addresses as well -- the 'W' character says to write 0x67 to 
+the address.  Below, we'll write it to <b>A</b>, to the third byte of <b>i</b>, and
+to <b>buf</b>:
+
+
 <pre>
-UNIX> <b>breakstack3</b>
-Calling a.  i = 1
-After a is done.  i = 5
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x20e78 W</b></font>
+Writing 0x67 to 0x20e78
+A is now 0x67            <font color=blue>We just wrote 0x67 to the first byte of A</font>
+i is now 0xabcd
+buf is now 0x20e78 W
+
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x7eadeb3e W</b></font>
+Writing 0x67 to 0x7eadeb3e
+A is now 0x67
+i is now 0x67abcd        <font color=blue>We just wrote 0x67 to the third byte of i</font>
+buf is now 0x7eadeb3e W
+
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x1685008 W</b></font>
+Writing 0x67 to 0x1685008
+A is now 0x67
+i is now 0x67abcd
+buf is now gx1685008 W    <font color=blue>We just wrote 0x67 ('g') to the first byte of buf</font>
+</pre>
+
+Recall that memory is partitioned by the processor into pages, and it manages the protection
+of memory at the page level.  So, even though <b>&amp;end</b> is <tt>0x20e94</tt>, we
+see from the <b>/proc/<i>pid</i>/maps</b> file that all memory up to <tt>0x20fff</tt>
+is part of the global variable segment.  So, we can read and write <tt>0x20fff</tt>
+without segfaulting, even though that doesn't have any meaning to our program:
+
+<pre>
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x20fff W</b></font>
+Writing 0x67 to 0x20fff
+<font color=blue>Ignore the output</font>
+
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x20fff R</b></font>
+Reading 0x20fff
+Read 0x67
+</pre>
+
+However, if we try to read 0x21000, we will segfault:
+
+<pre>
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x21000 R</b></font>
+Reading 0x21000
+Segmentation fault
 UNIX> 
 </pre>
-You should understand, and be able to explain this phenomenon.
 
+We can read an execute memory in the code segment.  That seems pretty dangerous,
+doesn't it?  Let's go ahead and read the first bytes of <b>main()</b> and <b>proc_a</b>:
+
+<pre>
+UNIX> <font color=darkred><b>./mess_with_memory</b></font>
+&etext: 0x10b3c
+&edata: 0x20e80
+&end:   0x20e94
+
+Code Addresses:
+main:   0x1072c
+proc_a: 0x10714
+
+Global Variable Addresses:
+&A: 0x20e78
+&B: 0x20e7c
+&X: 0x20e8c
+&Y: 0x20e90
+
+Heap Address:
+buf: 0x824008
+
+Stack Addresses:
+&i:    0x7ec4bb3c
+&buf:  0x7ec4bb38
+&argc: 0x7ec4bb24
+
+<font color=blue>I'm omiting the maps</font>
+
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x1072c R</b></font>
+Reading 0x1072c
+Read 0x10
+
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x10714 R</b></font>
+Reading 0x10714
+Read 0x0
+</pre>
+
+That's not very exciting.  Now, let's set the function pointer <b>proc</b> to <tt>0x10714</tt>,
+which is the first instruction of <b>proc_a</b>, and call <b>proc</b>.  You'll see that
+it calls <b>proc_a</b>:
+
+<pre>
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x10714 X</b></font>
+Hi
+</pre>
+
+Can we call <b>main()</b>?  Why not!
+
+<pre>
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x1072c X</b></font>
+<font color=blue>The first lines, up to the heap addresses are the same as before.</font>
+<font color=blue>I'm not including them here.</font>
+Heap Address:
+buf: 0x8240d8
+
+Stack Addresses:
+&i:    0x7ec4bb0c
+&buf:  0x7ec4bb08
+&argc: 0x7ec4baf4
+</pre>
+
+Since we're calling <b>main()</b> recursively, you'll see that <b>buf</b> has a new
+address, since we called <b>malloc()</b> again, and that the stack addresses are
+smaller than they were previously.
+<p>
+How about if we call it on a heap address?  We will get a segmentation violation,
+because the heap does not have execute permissions:
+
+<pre>
+Enter an address (with 0x), and R|W|X: <font color=darkred><b>0x824008 X</b></font>
+Segmentation fault
+</pre>
+
+An observant student in class noted that the stack <i>did</i> have execute permissions.
+That doesn't seem prudent.  If we try to an address in our current stack frame, 
+we'll get an illegal instruction, since those addresses have not been set up as instructions:
+
+<pre>
+UNIX> <font color=darkred><b>./mess_with_memory</b></font>
+<font color=blue>Lines deleted</font>
+Stack Addresses:
+&i:    0x7ef84b3c
+&buf:  0x7ef84b38
+&argc: 0x7ef84b24
+<font color=blue>More deleted</font>
+
+Enter an address (with 0x), and R|W|X: 0x7ef84b3c X
+Illegal instruction
+UNIX> <font color=darkred><b></b></font>
+</pre>
+
+I tried to then put real code onto the stack and run it, but it failed -- probing,
+it has to do with ARM branch instructions, and I don't really want to go down that
+rabbit hole.  Too bad.
+
+
+<hr>
+<h3>Breaking the stack</h3>
+
+It's not hard to break the stack -- simply do infinite recursion.  The
+program 
+<b><a href=break_the_stack.c>break_the_stack.c</a></b>
+does this.  
+
+<p><center><table border=3 cellpadding=3><td><pre>
+#include &lt;stdio.h&gt;
+
+int main(int argc)
+{
+  char eight_K[8192];
+
+  printf("Argc = %5d.  &argc = 0x%x.\n", argc, &argc);
+  main(argc+1);
+  return 0;
+}
+</pre></td></table></center><p>
+
+Typically, the operating system allocates 8MB for the stack, so this program
+should segfault in around 1024 iterations (less, because you are pushing more
+onto the stack than the <b>eight_K</b> array):
+
+<pre>
+UNIX> <font color=darkred><b>./break_the_stack</b></font>
+Argc =     1.  &argc = 0x7ec79b44.
+Argc =     2.  &argc = 0x7ec77b34.
+Argc =     3.  &argc = 0x7ec75b24.
+Argc =     4.  &argc = 0x7ec73b14.
+....
+Argc =  1019.  &argc = 0x7e481ba4.
+Argc =  1020.  &argc = 0x7e47fb94.
+Argc =  1021.  &argc = 0x7e47db84.
+Segmentation fault
+UNIX>
+</pre>
+
+You can also break the stack by simply allocating too much local memory.  A
+declaration like the following will do:
+
+<pre>
+   char big[10000000];
+</pre>
+
+<hr>
+<h3>What happens when you run out of heap space?</h3>
+
+When this happens, <b>malloc()</b> returns NULL.  The program
+<b><a href=break_the_heap.c>break_the_heap.c</a></b> keeps calling
+<b>malloc()</b> for a megabyte, until <b>malloc()</b> fails.  On
+my Raspberry pi, this happens after 2021 iterations, so it looks like
+my process gets two gigabytes of heap space before the operating system
+cries uncle...
+
+<p><center><table border=3 cellpadding=3><td><pre>
+int main()
+{
+  int i;
+  char *c;
+
+  for (i = 0; i &lt; 1000000000; i++) {
+    c = (char *) malloc(1024*1024);
+    printf("%9d 0x%08x\n", i, c);
+    if (c == NULL) exit(0);
+  }
+  return 0;
+}
+</pre></td></table></center><p>
+
+<pre>
+UNIX> <font color=darkred><b>./a.out</b></font>
+        0 0x76d0c008
+        1 0x76c0b008
+        2 0x76b0a008
+        3 0x76a09008
+...
+     2019 0x7eda0008
+     2020 0x7eea1008
+     2021 0x00000000
+UNIX> <font color=darkred><b></b></font>
+</pre>
+
+On my linux box, this went over 700,000 iterations before I killed it...
