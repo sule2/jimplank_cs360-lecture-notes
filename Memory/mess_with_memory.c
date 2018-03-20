@@ -1,5 +1,6 @@
 #include <sys/types.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -30,6 +31,7 @@ int Y;
 
 void proc_a()
 {
+  printf("Hi\n");
 }
 
 /* And of course i and buf will belong
@@ -41,6 +43,9 @@ int main(int argc, char **argv)
 {
   int i;
   char *buf;
+  char *ptr;
+  char c;
+  void (*proc)();
 
   buf = (char *) malloc(200);
 
@@ -79,5 +84,33 @@ int main(int argc, char **argv)
 
   sprintf(buf, "cat /proc/%d/maps", getpid());
   system(buf);
+
+  printf("\n");
+  printf("Enter an address (with 0x), and R|W|X: ");
+  fflush(stdout);
+
+  i = 0xabcd;
+
+  if (scanf("0x%x %c", &ptr, &c) != 2 || strchr("RWX", c) == NULL) {
+    printf("Failed\n");
+    exit(0);
+  }
+
+  if (c == 'R') {
+    printf("Reading 0x%x\n", (UI) ptr);
+    fflush(stdout);
+    c = *ptr;
+    printf("Read 0x%x\n", c); 
+  } else if (c == 'W') {
+    printf("Writing 0xff to 0x%x\n", ptr);
+    *ptr = 0x67;
+    printf("A is now 0x%x\n", A);
+    printf("i is now 0x%x\n", i);
+    printf("buf is now %s\n", buf);
+  } else if (c == 'X') {
+    memcpy(&proc, &ptr, sizeof(void *));
+    proc();
+  }
+
   return 0;
 }
