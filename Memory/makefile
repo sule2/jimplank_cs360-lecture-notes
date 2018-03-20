@@ -1,7 +1,7 @@
 CC = gcc
 # +mkmake+ -- Everything after this line is automatically generated
 
-EXECUTABLES = segfault look_at_memory mess_with_memory
+EXECUTABLES = segfault look_at_memory mess_with_memory break_the_stack
 
 all: $(EXECUTABLES)
 
@@ -22,4 +22,7 @@ look_at_memory: look_at_memory.c
 
 mess_with_memory: mess_with_memory.c
 	$(CC) $(CFLAGS) -o mess_with_memory mess_with_memory.c
+
+break_the_stack: break_the_stack.c
+	$(CC) $(CFLAGS) -o break_the_stack break_the_stack.c
 
