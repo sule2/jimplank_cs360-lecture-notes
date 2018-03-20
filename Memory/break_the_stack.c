@@ -9,7 +9,7 @@ int main(int argc)
 {
   char eight_K[8192];
 
-  printf("Argc = %5d.  &argc = 0x%x.\n", argc, &argc);
+  printf("Argc = %5d.  &argc = 0x%lx.\n", argc, &argc);
   main(argc+1);
   return 0;
 }
