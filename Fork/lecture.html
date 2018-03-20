@@ -360,7 +360,7 @@ int main()
   seekp = lseek(fd, 0, SEEK_CUR);
   printf("%s: After forking, before writing: Seek pointer = %d\n", s1, seekp);
 
-  sprintf(s2, "%s: After forking.\n", s1, seekp);
+  sprintf(s2, "%s: After forking.\n", s1);
   write(fd, s2, strlen(s2));
 
   seekp = lseek(fd, 0, SEEK_CUR);
