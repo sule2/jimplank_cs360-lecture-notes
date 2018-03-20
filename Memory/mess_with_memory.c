@@ -94,14 +94,17 @@ int main(int argc, char **argv)
   
     /* From stdin, read a pointer value into ptr, and a character R, W, or X into c. */
 
-    if (scanf("0x%x %c", &ptr, &c) != 2 || strchr("RWX", c) == NULL) {
+    if (fgets(buf, 200, stdin) == NULL) {
       printf("Exiting\n");
       exit(0);
     }
   
+    if (sscanf(buf, "0x%x %c", &ptr, &c) != 2 || strchr("RWX", c) == NULL) {
+      printf("Bad format.\n");
+
     /* If c is 'R', read the character at the pointer. */
 
-    if (c == 'R') {
+    } else if (c == 'R') {
       printf("Reading 0x%x\n", (UI) ptr);
       fflush(stdout);
       c = *ptr;
