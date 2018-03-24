@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 int main()
 {
@@ -15,19 +16,19 @@ int main()
   fd2 = dup(fd1);
 
   printf("Before writing Jim:   lseek(fd1, 0, 1): %d.  lseek(fd2, 0, 1): %d\n", 
-          lseek(fd1, 0, 1), lseek(fd2, 0, 1));
+          (int) lseek(fd1, 0, 1), (int) lseek(fd2, 0, 1));
 
   write(fd1, "Jim\n", strlen("Jim\n"));
 
   printf("Before writing Plank: lseek(fd1, 0, 1): %d.  lseek(fd2, 0, 1): %d\n",
-          lseek(fd1, 0, 1), lseek(fd2, 0, 1));
+          (int) lseek(fd1, 0, 1), (int) lseek(fd2, 0, 1));
 
   write(fd2, "Plank\n", strlen("Plank\n"));
 
   printf("After writing Plank:  lseek(fd1, 0, 1): %d.  lseek(fd2, 0, 1): %d\n",
-          lseek(fd1, 0, 1), lseek(fd2, 0, 1));
+          (int) lseek(fd1, 0, 1), (int) lseek(fd2, 0, 1));
 
   close(fd1);
   close(fd2);
+  return 0;
 }
-

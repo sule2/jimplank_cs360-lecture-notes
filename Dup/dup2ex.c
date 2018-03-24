@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
 
@@ -35,4 +36,5 @@ int main()
 
   s = "And write\n";
   write(1, s, strlen(s));
+  return 0;
 }

@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 int main()
 {
@@ -17,5 +18,6 @@ int main()
   i = fork();
   fprintf(f, "fork() = %d.\n", i);
   fclose (f);
+  return 0;
 }
 
