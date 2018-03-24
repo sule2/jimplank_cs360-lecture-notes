@@ -1,0 +1,71 @@
+PIPE(2V)                  SYSTEM CALLS                   PIPE(2V)
+
+
+
+NAME
+     pipe - create an interprocess communication channel
+
+SYNOPSIS
+     int pipe(fd)
+     int fd[2];
+
+DESCRIPTION
+     The pipe() system call creates an I/O mechanism called a pipe
+     and returns two file descriptors, fd[0] and fd[1].  fd[0] is
+     opened for reading and fd[1] is opened for writing.  When the
+     pipe is written using the descriptor fd[1] up to {PIPE_BUF} (see
+     sysconf(2V)) bytes of data are buffered before the writing
+     process is blocked.  A read only file descriptor fd[0] accesses
+     the data written to fd[1] on a FIFO (first-in-first-out) basis.
+
+     The standard programming model is that after  the  pipe  has
+     been set up, two (or more) cooperating processes (created by
+     subsequent fork(2V) calls) will pass data through  the  pipe
+     using read(2V) and write(2V).
+
+     Read calls on an empty pipe (no buffered data) with only one
+     end  (all write file descriptors closed) return an EOF (end
+     of file).
+
+     A SIGPIPE signal is generated if a write on a pipe with only
+     one end is attempted.
+
+     Upon successful completion,  pipe()  marks  for  update  the
+     st_atime, st_ctime, and st_mtime fields of the pipe.
+
+RETURN VALUES
+     pipe() returns:
+
+     0    on success.
+
+     -1   on failure and sets errno to indicate the error.
+
+ERRORS
+     EFAULT         The array fd is in an  invalid  area  of  the
+                    process's address space.
+
+     EMFILE         Too many descriptors are active.
+
+     ENFILE         The system file table is full.
+
+
+
+
+
+Sun Release 4.1   Last change: 21 January 1990                  1
+
+
+
+
+
+
+PIPE(2V)                  SYSTEM CALLS                   PIPE(2V)
+
+
+
+SEE ALSO
+     sh(1), fork(2V), read(2V), socketpair(2), write(2V)
+
+BUGS
+     Should more than {PIPE_BUF} bytes be necessary in  any  pipe
+     among a loop of processes, deadlock will occur.
