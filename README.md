@@ -26,3 +26,4 @@ Lecture notes and example programs for Dr. Plank's CS360 class at the University
 - [Lecture #19: Malloc Lecture #1](Malloc1/README.md)
 - [Lecture #20: Malloc Lecture #2](Malloc2/README.md)
 - [Lecture #21: Fork](Fork/README.md)
+- [Lecture #22: Wait and Exec](Exec/README.md)
