@@ -30,3 +30,4 @@ Lecture notes and example programs for Dr. Plank's CS360 class at the University
 - [Lecture #23: Dup](Dup/README.md)
 - [Lecture #24: Pipe](Pipe/README.md)
 - [Lecture #25: Signals](Signals/README.md)
+- [Lecture #26: Sockets](Sockets/README.md)
