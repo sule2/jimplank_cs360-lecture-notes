@@ -573,7 +573,7 @@ loop stops when <b>j = 4</b>,
 but were that a 10 rather than a 4, then <b>fork()</b> would be called 1023
 times.  (i.e.  fork gets called <i>2<sup>n</sup>-1</i> times if the 4
 were an <i>n</i>).  This can be devastating.  Fix the error
-by checking the return value of <b>execv()</b> as in
+by calling <b>perror()</b> and <b>exit()</b> if <b>execv()</b> returns, as in
 <a href=execcat4.c><b>execcat4.c</b></a>:
 
 <pre>
