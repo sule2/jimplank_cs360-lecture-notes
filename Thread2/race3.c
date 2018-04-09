@@ -28,6 +28,7 @@ void *infloop(void *x)
     printf("Thread %d: %s\n", t->id, t->s);
     if (pthread_mutex_unlock(t->lock) != 0) { perror("Mutex unlock"); exit(1); }
   }
+  return NULL;
 }
 
 int main(int argc, char **argv)
