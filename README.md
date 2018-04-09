@@ -31,3 +31,5 @@ Lecture notes and example programs for Dr. Plank's CS360 class at the University
 - [Lecture #24: Pipe](Pipe/README.md)
 - [Lecture #25: Signals](Signals/README.md)
 - [Lecture #26: Sockets](Sockets/README.md)
+- [Lecture #27: Thread Lecture 1](Thread1/README.md)
+- [Lecture #28: Thread Lecture 2](Thread2/README.md)
