@@ -57,7 +57,7 @@ int main(int argc, char **argv)
   /* Fork off a thread to read from the socket and print to standard output.
      The main thread will read from standard input and print to the socket. */
 
-  if (pthread_create(&tid, NULL, process_connection, socket_to_stdout) == 0) {
+  if (pthread_create(&tid, NULL, process_connection, socket_to_stdout) != 0) {
     perror("pthread_create");
     exit(1);
   }
