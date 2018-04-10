@@ -1,4 +1,4 @@
-# CS360 Lecture Notes: Thread Lecture #1
+# CS360 Lecture Notes: Thread Lecture 1
 
 James S. Plank
 
