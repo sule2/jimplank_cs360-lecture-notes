@@ -158,7 +158,7 @@ int main(int argc, char **argv)
   pthread_mutex_init(S.input_lock, NULL);
   S.output_lock = (pthread_mutex_t *) malloc(sizeof(pthread_mutex_t));
   pthread_mutex_init(S.output_lock, NULL);
-  S.output_cond = (pthread_cond_t *) malloc(sizeof(pthread_mutex_t));
+  S.output_cond = (pthread_cond_t *) malloc(sizeof(pthread_cond_t));
   pthread_cond_init(S.output_cond, NULL);
   
   tids = (pthread_t *) malloc(sizeof(pthread_t) * S.nthreads);

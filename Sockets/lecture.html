@@ -14,11 +14,8 @@ Thu Apr  5 12:14:03 EDT 2018
 </UL>
 <hr>
 
-
-This lecture focuses on programming with sockets, as implemented by
-the program <a href=sockettome.c><b>sockettome.c</b></a> (name
-provided by Harrison "Jay" Cross, a student in my CS360 class in
-2011).
+<h3>Introduction, and playing with sockets using <b>nc</b>.</h3>
+<p>
 
 <p>Sockets are the most general constructs for performing interprocess communication
 (usually abbreviated IPC) in Unix.  We have seen other ways of performing
@@ -30,6 +27,96 @@ Often we would like to have two processes
 talk with each other when they are otherwise unrelated.  For example,
 they can be created by different shells, different users, or on different
 machines.  Sockets let us do this.
+<p>
+
+A socket is a construct maintained and controlled by the operating system.
+You can do three basic things with a socket:
+
+<OL>
+<LI> <b>Serve the socket:</b>  To do this, you must ask the operating system
+to allow you to serve a socket with a given <i>port</i> number.  
+If the operating system responds affirmatively, then you can:
+<p><LI> <b>Listen for and accept client connections</b>: Here  you tell the operating
+system that you want to wait for clients to connect to the socket.  When they do,
+the operating system will give you a handle for the connection.  This handle will
+be a file descriptor.
+<p><LI> <b>Request a connection as a client</b>: Here you tell your operating system that
+you want to request a connection to a specific port number on (potentially) a different machine.
+That machine is called the <i>host</i>.
+If a process on that host has served that socket and is accepting connections, then you will also
+receive a file descriptor for the connection.  You and the server may now talk to each
+other through your file descriptors, much like you have processes talk with each other
+over pipes.
+</OL>
+
+The Unix program <b>nc</b> gives you a very simple mechanism for playing with sockets.
+If you call it with the "-l" option, then it will serve a socket on that port and accept
+a connection.  You can call <b>nc</b> with a host and port number, and it will request a
+connection.  When the connection is made, the two <b>nc</b> processes may communicate 
+with each other through standard input.  Below, I show a communication with a server on 
+<b>hydra1</b> and a client on <b>hydra2</b>:
+
+<p>
+<center>
+<table border=3><td valign=top>
+On <b>hydra1</b><hr><pre>
+UNIX> <font color=darkred><b>nc -l 8888</b></font>
+
+
+Hi -- it's me, on hydra2
+
+Are you there?
+<font color=darkred><b>Yes, but I'm leaving.</b></font>
+
+<font color=darkred><b>&lt;CNTL-C&gt;</b></font>
+UNIX>
+</pre></td><td valign=top>
+On <b>hydra2</b><hr><pre>
+
+UNIX> <font color=darkred><b>nc hydra1 8888</b></font>
+<font color=darkred><b>Hi -- it's me, on hydra2</b></font>
+
+<font color=darkred><b>Are you there?</b></font>
+
+
+Yes, but I'm leaving.
+
+<font color=darkred><b>What?</b></font>
+Ncat: Broken pipe.
+UNIX> <font color=darkred><b></b></font>
+</pre></td></table></center><p>
+
+There are a lot of options to <b>nc</b>, so you should play with it for a bit.
+
+<hr>
+<h3>Socket Rules At The University of Tennessee</h3>
+
+Unfortunately, sockets have historically been exploited for security violations, so our department
+is relatively strict about them.  You should be aware of the following:
+
+<UL>
+<LI> You cannot serve a socket on our departmental machines, and connect to it from a non-departmental machine.  That includes machines that are on UT's wireless network (because those are not departmental).  If you want to serve such a socket, you'll need to talk with our IT support.  
+<p>
+<LI> If you want to serve a socket on a departmental machine that can only be connected to by other departmental machines, then use a port number between 8000 and 2<sup>16</sup>-1.  The low number
+used to be 500, then 5000.  I assume it will continue to go up
+<p>
+<LI> You can serve sockets on your laptops just fine, but you'll pretty much only be able to
+connect to them from clients on the same laptop.  Use "localhost" as the host.  You can probably
+do some fun stuff with your own local area networks, but you won't be able to serve sockets
+externally to them.
+<p>
+<LI> The main client program that I used to use was called <b>telnet</b>.  I will talk about it
+in the lecture notes.  However, it has been deleted from our departmental machines.  The reason is that telnet's main use years ago (and I mean *years* ago) was to remotely log into machines on port 23.  However, everything was sent in the clear.  This is why ssh first came about.  It seems to me that the solution to this is to disable the servers on port 23, rather than to delete telnet, but no one asked me.
+</UL>
+
+
+<hr>
+<b>I'm here in the rewrite.</b>.
+<p>
+This lecture focuses on programming with sockets, as implemented by
+the program <a href=sockettome.c><b>sockettome.c</b></a> (name
+provided by Harrison "Jay" Cross, a student in my CS360 class in
+2011).
 
 <p>The Unix socket interface is one of the more arcane things you'll ever
 run into.  It is for that reason that instead of using that
