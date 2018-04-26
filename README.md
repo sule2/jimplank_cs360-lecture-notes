@@ -36,4 +36,5 @@ Lecture notes and example programs for Dr. Plank's CS360 class at the University
 - [Lecture #29: Mutexes and Condition Variables](Mutex-Cond/README.md)
 - [Lecture #30: Thread Lecture 3](Thread3/README.md)
 - [Lecture #31: Thread Lecture 4: The Printer Simulation](Thread4/README.md)
-- [Lecture #32: Thread Lecture 3](Thread3/README.md)
+- [Lecture #32: The Dining Philosophers](Dphil/README.md)
+- [Lecture #33: Setjmp / Longjmp](Setjmp/README.md)
