@@ -1,0 +1,39 @@
+UNIX> ps4 3 5 4 4 10 10
+   0: user  0/000: Sleeping for  3 seconds
+   0: user  1/000: Sleeping for  5 seconds
+   0: user  2/000: Sleeping for  3 seconds
+   0: prnt  0/000: ready to print
+   0: prnt  0 blocking because the queue is empty
+   0: prnt  1/000: ready to print
+   0: prnt  1 blocking because the queue is empty
+   0: prnt  2/000: ready to print
+   0: prnt  2 blocking because the queue is empty
+   0: prnt  3/000: ready to print
+   0: prnt  3 blocking because the queue is empty
+   0: prnt  4/000: ready to print
+   0: prnt  4 blocking because the queue is empty
+   3: user  2/000: Submitting a job with size 1
+   3: user  2/001: Sleeping for  6 seconds
+   3: user  0/000: Submitting a job with size 1
+   3: user  0/001: Sleeping for  1 seconds
+   3: prnt  0/000: Printing job   0 from user  2 size   1
+   4: user  0/001: Submitting a job with size 2
+   4: user  0/002: Sleeping for  7 seconds
+   5: user  1/000: Submitting a job with size 2
+   5: user  1/001: Sleeping for  7 seconds
+   7: prnt  0/001: ready to print
+   7: prnt  0/001: Printing job   0 from user  0 size   1
+   9: user  2/001: Submitting a job with size 1
+   9: user  2/002: Sleeping for  1 seconds
+  10: user  2/002: Submitting a job with size 3
+  10: user  2/003: Sleeping for  3 seconds
+  11: user  0/002: Submitting a job with size 2
+  11: user  0/003: Sleeping for  1 seconds
+  11: prnt  0/002: ready to print
+  11: prnt  0/002: Printing job   1 from user  0 size   2
+  12: user  1/001: Submitting a job with size 4
+  12: user  1/002: Sleeping for  4 seconds
+  12: user  0/003: Submitting a job with size 4
+  12: user  0/004: Sleeping for  2 seconds
+...
+

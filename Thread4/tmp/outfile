@@ -1,0 +1,22 @@
+   0: user  0/000: Sleeping for  2 seconds
+   0: user  1/000: Sleeping for 10 seconds
+   0: user  2/000: Sleeping for  5 seconds
+   0: user  3/000: Sleeping for  2 seconds
+   0: user  4/000: Sleeping for 11 seconds
+   0: prnt  0/000: ready to print
+   0: prnt  0 blocking because the queue is empty
+   0: prnt  1/000: ready to print
+   0: prnt  1 blocking because the queue is empty
+   0: prnt  2/000: ready to print
+   0: prnt  2 blocking because the queue is empty
+   0: prnt  3/000: ready to print
+   0: prnt  3 blocking because the queue is empty
+   0: prnt  4/000: ready to print
+   0: prnt  4 blocking because the queue is empty
+   2: user  3/000: Submitting a job with size 6
+   2: user  3/001: Sleeping for 18 seconds
+   2: user  0/000: Submitting a job with size 5
+   2: user  0/001: Sleeping for 15 seconds
+   2: prnt  0/000: Printing job   0 from user  3 size   6
+   5: user  2/000: Submitting a job with size 5
+   5: user  2/001: Sleeping for 12 seconds
