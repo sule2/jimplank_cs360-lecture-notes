@@ -34,3 +34,4 @@ Lecture notes and example programs for Dr. Plank's CS360 class at the University
 - [Lecture #27: Thread Lecture 1](Thread1/README.md)
 - [Lecture #28: Thread Lecture 2](Thread2/README.md)
 - [Lecture #29: Mutexes and Condition Variables](Mutex-Cond/README.md)
+- [Lecture #30: Thread Lecture 3](Thread3/README.md)
