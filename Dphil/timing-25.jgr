@@ -1,0 +1,17 @@
+newgraph 
+xaxis min .3 max 6.8 hash 1 mhash 0 no_auto_hash_labels size 1.5
+  hash_labels hjl vjc rotate -75
+  hash_label at 1 : 1 - Right-left
+  hash_label at 2 : 2 - Even-odd
+  hash_label at 3 : 3 - Hold-and-wait
+  hash_label at 4 : 4 - Global List
+  hash_label at 5 : 5 - Take a number
+  hash_label at 6 : 6 - Hybrid
+  yaxis min 0 max 355 size 2 label : Hungry Time (sec)
+  newcurve marktype xbar marksize 1 cfill 1 .5 .5 pts
+     1	278.919
+     2	148.646
+     3	140.681
+     4	352.036
+     5	195.490
+     6	142.821
