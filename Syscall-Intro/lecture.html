@@ -626,8 +626,8 @@ UNIX> <font color=darkred><b>ls -l out*.txt</b></font>
 -rw-r--r--  1 plank  staff  0 Jan 31 13:17 out2.txt
 -rw-r--r--  1 plank  staff  5 Jan 31 13:52 out3.txt
 UNIX> <font color=darkred><b>cat out3.txt</b></font>
-abcdeUNIX> <font color=darkred><b>rm out3.txt</b></font>
-UNIX> <font color=darkred><b>w2 wt efghi</b></font>       <font color=blue>It truncated the file.  We didn't need O_CREAT because the file already exists.</font>
+abcdeUNIX> <font color=darkred><b>rm out3.txt</b></font>       <font color=blue>It truncated the file.  We didn't need O_CREAT because the file already exists.</font>
+UNIX> <font color=darkred><b>w2 wt efghi</b></font>
 open: No such file or directory
 UNIX> <font color=darkred><b>ls -l out*.txt</b></font>
 -rw-r--r--  1 plank  staff  0 Jan 31 13:17 out2.txt
