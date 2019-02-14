@@ -11,6 +11,13 @@
 #include <sys/stat.h>
 #include "jrb.h"
 
+int long_comp(Jval v1, Jval v2)
+{
+  if (v1.l < v2.l) return -1;
+  if (v1.l > v2.l) return 1;
+  return 0;
+}
+
 int get_size(char *fn, JRB inodes)
 {
   DIR *d;
@@ -36,9 +43,9 @@ int get_size(char *fn, JRB inodes)
     if (exists < 0) {
       fprintf(stderr, "Couldn't stat %s\n", s);
     } else {
-      if (jrb_find_int(inodes, buf.st_ino) == NULL) {
+      if (jrb_find_gen(inodes, new_jval_l(buf.st_ino), long_comp) == NULL) {
         total_size += buf.st_size;
-        jrb_insert_int(inodes, buf.st_ino, new_jval_i(0));
+        jrb_insert_gen(inodes, new_jval_l(buf.st_ino), new_jval_i(0), long_comp);
       }
     }
     if (S_ISDIR(buf.st_mode) && strcmp(de->d_name, ".") != 0 && 

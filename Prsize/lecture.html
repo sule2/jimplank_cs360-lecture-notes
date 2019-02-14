@@ -178,7 +178,7 @@ makes this change.
 
 <pre>
 UNIX> <font color=darkred><b>../prsize5</b></font>
-4170
+4235
 </pre>
 
 So, this looks ok, except there's still something wrong:
@@ -234,23 +234,16 @@ to recognize hard links, and only count them once.<p>
 How do you recognize whether two files are links to
 the same disk file?  You use the inode number.  This
 is held in <b>buf.st_ino</b>.<p>
-
+<p>
 Now, the way we check for duplicate inodes is to
 maintain a rb-tree of inodes that we have seen so far.
 Before adding in the size of any file, we check to see
 if its inode is in the rb-tree.  If so, we do nothing.
 Otherwise, we add in the size, and put the inode into
 the rb-tree.  
-As inodes are ints, we can use
-<b>jrb_insert_int</b> and <b>jrb_find_int</b> to access and modify the
-red-black tree.  
-<font color=darkred>(Caveat starting in 2015 -- inode numbers are now longs on some systems,
-so using jrb_find_int()</b> is not technically the right thing to use any more.  However, I'm not going to
-change the notes because it won't matter functionally unless you have two inodes whose
-lower 32 bits are identical.  I'm tempted to <b>memcpy()</b> the inode into a double and
-use <b>jrb_find_dbl()</b> -- I'll probably do that when I teach it, even though it's kind 
-of disgusting.  What I need to do is add <b>_long()</b> to the JRB library, but
-I don't see myself doing that any time soon.)</font>
+It is an unfortunate matter that on some systems, inodes are longs rather than ints,
+so to store them in a JRB, we use the ".l" field of the jval, and add a custom
+comparison function.
 <p>
 The code is in 
 <a href=prsize6.c><b>prsize6.c</b></a>.
@@ -405,7 +398,6 @@ UNIX> <font color=darkred><b>../prsize8</b></font>
 4270
 UNIX> <font color=darkred><b></b></font>
 </pre>
-UNIX> 
 
 As an aside, <b>find</b> has the same bug as <b>prsize7.c</b>:
 
@@ -452,6 +444,12 @@ Here's
 <b><a href=prsize8.c>prsize8.c</a></b>, commented for your enjoyment.
 
 <p><center><table border=3 cellpadding=3><td><pre>
+<font color=blue>/* prsize8.c
+   Jim Plank
+   Fall, 1996
+   CS360
+ */</font>
+
 #include &lt;stdio.h&gt;
 #include &lt;stdlib.h&gt;
 #include &lt;string.h&gt;
@@ -459,6 +457,15 @@ Here's
 #include &lt;sys/stat.h&gt;
 #include "jrb.h"
 #include "dllist.h"
+
+<font color=blue>/* Add a comparison function for longs, so that the jrb library can work on inodes. */</font>
+
+int long_comp(Jval v1, Jval v2)
+{
+  if (v1.l &lt; v2.l) return -1;
+  if (v1.l &gt; v2.l) return 1;
+  return 0;
+}
 
 <font color=blue>/* This procedure returns the number of bytes in files that are
    reachable from fn.  It does not double-count hard links to
@@ -508,9 +515,9 @@ int get_size(char *fn, JRB inodes)
        put it into the tree and process it. */</font>
 
     } else {
-      if (jrb_find_int(inodes, buf.st_ino) == NULL) {
+      if (jrb_find_gen(inodes, new_jval_l(buf.st_ino), long_comp) == NULL) {
         total_size += buf.st_size;
-        jrb_insert_int(inodes, buf.st_ino, new_jval_i(0));
+        jrb_insert_gen(inodes, new_jval_l(buf.st_ino), new_jval_i(0), long_comp);
       }
     }
 
