@@ -173,7 +173,8 @@ There are also "compare" and "branch" instructions, which is how you implement
         for and if statements, but I won't go over them yet.
 <p>
 Finally, there are also "directives" which are not really code, but specify
-    that memory must be allocated for variables.  For example:
+that memory must be allocated for variables.  In this assembler, this is just one such
+directive:
 
 <pre>
        .globl i           Allocate 4 bytes in the globals segment
@@ -202,14 +203,16 @@ subroutines, perform "if-then" statements, etc.
    however, the bytes are organized logically into units of 4 bytes
    each, as that is the size of registers.  We assume that this
    memory is of size 0x80000000.  The code
-   starts at address 0x1000 (typically, at a higher address, but for
-   simplicity, we'll say 0x1000 here).  The globals follow the code,
-   and the heap follows the globals.  As a program executes, the heap
-   and stack might grow and shrink, but the code and globals stay the
+   starts at address 0x1000.  The globals follow the code, starting in the
+   first address that is a multiple of 4096 (0x1000).  On a real machine,
+   the heap would follow the code, or start at some other address which 
+   is a multiple of 4096.  With <b>jassem</b>, there is no heap.<p>
+
+   As a program executes, the stack will 
+   grow and shrink, but the code and globals stay the
    same size.  The stack grows from back to front, starting at
-   address 0x80000000 (actually, starting at
-   0x7fffffff), and growing towards the heap.  In between the heap
-   and stack is unused memory:
+   address 0x80000000 and growing toward lower memory addresses.
+   In between the globals and stack is unused memory:
 
 <pre>
          The programs' address space:
@@ -224,13 +227,6 @@ subroutines, perform "if-then" statements, etc.
          |         globals          |
          |                          |
          |--------------------------|
-         |                          |
-         |         heap             |
-         |                          |
-         |                          |
-         |vvvvvvvvvvvvvvvvvvvvvvvvvv|
-         |      (grows down)        |
-         |                          |
                    ....               
                 Unused memory
                    ....               
@@ -253,8 +249,6 @@ translation works.  The assembler code produced by the translation
 consists of machine instructions and 
 directives.  The translation is very logical.
 For example, the following code:<p>
-
-<b><a href=/dev/null>/dev/null</a></b>
 
 <p><center><table border=3 cellpadding=3><td><pre>
 int i;
@@ -312,7 +306,7 @@ are made from one statement to the next.  We leave compiler optimization to
 another course (like a compiler course)
 <p>
 
-Now, suppose instead that we had the following code to run:
+Now, suppose instead that we have the following code to run:
 
 <p><center><table border=3 cellpadding=3><td><pre>
 int main()
