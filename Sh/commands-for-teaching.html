@@ -1,0 +1,89 @@
+<pre>
+Do these in the C Shell -- showing redirection:
+
+cat f1
+
+cat &lt; f1
+
+&lt; f1 cat
+
+&lt; cat f1
+
+cat f1 &gt; f2
+cat f2
+
+cat f1 &gt;&gt; f2
+cat f2
+
+&gt; f2 &lt; f1 cat
+cat f2
+
+# Differentiating stdout / stderr:
+
+cat f1 f3
+ 
+cat f1 f3 &gt; f2
+cat f2
+ 
+cat f1 f3 &gt;&amp; f2
+cat f2
+ 
+# Now in the Bourne Shell:
+
+cat f1 f3 1&gt;f2
+cat f2
+
+cat f1 f3 1&gt;f2 2&gt;f5
+cat f2
+cat f5
+
+rm f2
+cat f1 f3 1&gt;f2 1&gt;f5
+cat f2
+cat f5
+
+# Redirecting standard input multiple times:
+
+echo "This is f1" &gt; f1
+echo "This is f2" &gt; f2
+
+sh -c "cat &lt; f1 &lt; f2"
+
+sh -c "cat &lt; f2 &lt; f1"
+
+csh -c "cat &lt; f1 &lt; f2"
+
+# Back to the Bourne shell -- not sure why:
+
+cat f2
+head f2 &gt; f2
+cat f2
+ 
+echo "This is f2" &gt; f2
+head &lt; f2 &gt; f2
+cat f2
+ 
+cat f1 f3 &gt; f2 2&gt;&amp;1
+cat f2
+
+cat f1 f3 2&gt;&amp;1 &gt; f2
+cat f2
+
+cat f1 f3 &gt;f2 2&gt;&amp;1 1&gt;f5
+cat f2
+cat f5
+
+cat f1 f3 3&gt;f2 1&gt;f5 2&gt;&amp;1 1&gt;&amp;3
+cat f2
+cat f5
+
+$
+$badbadcode
+$badbadcode 3&gt;f5
+$cat f5
+$badbadcode 3&gt;&amp;1
+
+
+$dont_admit_i_taught_you_this &gt; /dev/null 9&gt;elog.txt
+$cat elog.txt
+$dont_admit_i_taught_you_this &gt; /dev/null
