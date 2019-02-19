@@ -49,7 +49,7 @@ Both of these procedure calls are straightforward.  <b>Main()</b> first allocate
 one variable on the stack, and then calls "<b>jsr a</b>", which means
 jump to subroutine <b>a</b>.  All <b>a()</b> does is return 1 to its caller -- it does that
 by setting <b>r0</b> to one, and then calling <b>"ret"</b>.
-When control returns to <b>main()</b> it stores <b>a's</b> return value, which is in <b>r0</b>
+When control returns to <b>main()</b> it stores <b>a's</b> return value, which is in <b>r0</b>,
 to the memory that it has allocated for <b>i</b>.  And it returns.
 <p>
 
