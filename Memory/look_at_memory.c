@@ -12,9 +12,9 @@ typedef unsigned long int UI;
    uninitialized global variables ("bss").
    */
 
-extern end;
 extern etext;
 extern edata;
+extern end;
 
 /* Here are four global variables.  A
    and B belong to the "data", and X and Y

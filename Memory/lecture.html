@@ -21,7 +21,7 @@ used to explore them are typically not POSIX standards, and can differ from oper
 system to operating system.  Fortunately, the concepts are easy to map from one machine to
 another, but I can understand your frustration if things become confusing on a new machine.
 <p>
-Fortunately, Raspberry Pi's using the Raspbian operating system are pretty clean, 32-bit
+Also fortunately, Raspberry Pi's using the Raspbian operating system are pretty clean, 32-bit
 machines.  The output that you see below will be on a Pi, so if you have access
 to one and want to follow along, then please do so.  Most Linux OS's will come close to
 what you see here, so long as you are ready for 64-bit pointers.  If you compile these
@@ -189,9 +189,9 @@ typedef unsigned long int UI;
    uninitialized global variables ("bss").
    */</font>
 
-extern end;
 extern etext;
 extern edata;
+extern end;
 
 <font color=blue>/* Here are four global variables.  A
    and B belong to the "data", and X and Y
