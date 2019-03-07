@@ -31,7 +31,7 @@ pid_t wait(int *stat_loc);   <font color=blue>// pid_t is an int or uint32_t, ty
 <p>
 
 When you call it, if you don't have any children, it returns -1.  Otherwise, it
-will wait of one of your children to exit.  When they do, the <b>wait()</b> call
+will wait for one of your children to exit.  When they do, the <b>wait()</b> call
 will return with the process id of the child that exited.  It will also fill in
 the integer pointed to by <b>stat_loc</b> with information on how the child exited.
 There are macros in the <b>sys/wait.h</b> include file that can help you parse
