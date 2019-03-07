@@ -424,7 +424,7 @@ int main()
 </pre></td></table></center><p>
 <p>
 
-This technically isn't a bomb -- it just shows one process creating 10 processes.
+This isn't a fork-bomb -- it just shows one process creating 10 processes.
 If I asked you on a test how many lines of output this program produces, your
 answer should be 20 -- 10 for the process calling <b>fork()</b>, and one for
 each of the ten child processes:
@@ -479,7 +479,7 @@ int main()
 </pre></td></table></center><p>
 
 On the first iteration, the parent calls <b>fork()</b>, so there are two processes
-printing out i=0.  Now each of those two processes iterating and call <b>fork()</b>,
+printing out i=0.  Now each of those two processes iterates and call <b>fork()</b>,
 so there are four processes with i=1.  Similarly, there are 8 processes with i=2 and
 16 with i=3.  Exponential blow-up.  These kinds of programs can happen (see the next
 lecture), so be aware of them.  If you iterate too many times, the operating system
