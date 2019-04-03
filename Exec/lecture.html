@@ -306,7 +306,7 @@ Now, we go over how to execute programs using <b>execve()</b>.
 int execve(char *path, char **argv, char **envp);
 </pre></td></table></center><p>
 
-<p><b>Execve()</b> assumes that path is the name of an executable file.  
+<p><b>Execve()</b> assumes that <b>path</b> is the name of an executable file.  
 <b>Argv</b>
 is an array of null-terminated strings, such that the last element
 is <b>NULL</b>, and <b>envp</b> is 
@@ -317,9 +317,9 @@ get <b>envp</b> as a third argument to <b>main()</b>, which is what I'm going
 to do here).
 
 <p><b>Execve()</b> overwrites the current process so that it executes
-the file in path with the arguments in <b>argv</b>, and the
+the file in <b>path</b> with the arguments in <b>argv</b>, and the
 environment variables in <b>envp</b>.  <b>Execve()</b> does not return
-unless it encounters an error, such as the file in "<b>path</b>"
+unless it encounters an error, such as the file in <b>path</b>
 not existing, or not being an executable file. 
 
 <p>This may seem confusing.  Why does <b>execve()</b> not return?

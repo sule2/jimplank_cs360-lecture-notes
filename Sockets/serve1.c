@@ -23,9 +23,9 @@ int main(int argc, char **argv)
   }
 
   port = atoi(argv[1]);
-  if (port < 5000) {
+  if (port < 8000) {
     fprintf(stderr, "usage: serve1 port\n");
-    fprintf(stderr, "       port must be > 5000\n");
+    fprintf(stderr, "       port must be > 8000\n");
     exit(1);
   }
 

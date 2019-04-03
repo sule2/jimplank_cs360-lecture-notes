@@ -111,8 +111,6 @@ in the lecture notes.  However, it has been deleted from our departmental machin
 
 
 <hr>
-<b>I'm here in the rewrite.</b>.
-<p>
 This lecture focuses on programming with sockets, as implemented by
 the program <a href=sockettome.c><b>sockettome.c</b></a> (name
 provided by Harrison "Jay" Cross, a student in my CS360 class in
@@ -128,18 +126,18 @@ When you make your final executable,  On others, you don't need it -- be
 prepared to be flexible when you're testing your code on multiple machines.)</i>
 
 <pre>
-extern int serve_socket(int port);
-		/* This serves a socket on the current machine with the given 
-		   port number.  It returns an fd for that socket.  */</font>
+int serve_socket(int port);
+		<font color=blue>/* This serves a socket on the current machine with the given 
+		   port number.  It returns an fd for that socket.  */</font></font>
 
-extern int accept_connection(int s);
-		/* This accepts a connection on the given socket (i.e.
+int accept_connection(int s);
+		<font color=blue>/* This accepts a connection on the given socket (i.e.
                    it should only be called by the server).  It returns
-                   the fd for the connection.  This fd is of course r/w */</font>
+                   the fd for the connection.  This fd is of course r/w */</font></font>
 
-extern int request_connection(char *hn, int port);
-		/* This is what the client calls to connect to a server's
-                   port.  It returns the fd for the connection. */</font>
+int request_connection(char *hn, int port);
+		<font color=blue>/* This is what the client calls to connect to a server's
+                   port.  It returns the fd for the connection. */</font></font>
 </pre>
 Sockets work as follows:
 
@@ -181,7 +179,7 @@ That is, the serving process may call <b>accept_connection()</b> any number
 of times, as long as there are other processes calling
 <b>request_connection()</b> to that machine and port number.  This is kind
 of like having multiple phone lines with one telephone number.
-This will be useful when you write <b>jtalk</b> with more than 2 people. 
+This will be useful when you write <b>jtalk</b> with more than two people. 
 
 <hr>
 Let's look at some example code.  Start with 
@@ -198,7 +196,7 @@ Let's look at some example code.  Start with
    accepts a connection.  It sends the username of whoever is running the 
    program along the connection, and then it reads a line of text, one
    character at a time.  It prints the line and exits.  You can connect
-   to this program with telnet. */</font>
+   to this program with nc. */</font>
 
 int main(int argc, char **argv)
 {
@@ -213,9 +211,9 @@ int main(int argc, char **argv)
   }
 
   port = atoi(argv[1]);
-  if (port &lt; 5000) {
+  if (port &lt; 8000) {
     fprintf(stderr, "usage: serve1 port\n");
-    fprintf(stderr, "       port must be &gt; 5000\n");
+    fprintf(stderr, "       port must be &gt; 8000\n");
     exit(1);
   }
 
@@ -245,7 +243,7 @@ int main(int argc, char **argv)
 </pre></td></table></center><p>
 <p><b>Serve1.c</b> takes one argument -- the port number of a 
 socket to serve.  This port number should be greater
-than 5000.  This is because smaller port numbers may be used for other
+than 8000.  This is because smaller port numbers may be used for other
 Unix programs.
 
 <p><b>Serve1.c</b> serves a socket and then waits to
@@ -257,21 +255,22 @@ Then it reads bytes from the connection and
 prints them out until it gets a newline.  Once
 done, it exits.  
 
-You can test <b>serve1</b> by running a <b>telnet</b> client on another machine.  
-<b>Telnet</b> is a generic client that attaches to a server, then it does two things:
+You can test <b>serve1</b> by running a <b>nc</b> client on another machine.  
+As mentioned above, you can use
+<b>nc</b> to be a generic client that attaches to a server, then it does two things:
 <p>
 <OL> 
 <LI> It reads lines from standard input and sends them along the connection.
 <LI> It reads lines from the socket and prints them to standard output.
 </OL>
 
-Below, I run the server on hydra3, and the client on my Macintosh.  I have padded this output with
+Below, I run the server on hydra3, and the client on hydra4.  I have padded this output with
 extra lines so that you can see the timing of things relative to each other.
 
 <p><center><table border=3 cellpadding=3><td valign=top>
 On hydra3:<hr>
 <pre>
-UNIX> <font color=darkred><b>./serve1 5555</b></font>
+UNIX> <font color=darkred><b>./serve1 8888</b></font>
 
 Connection established.  Sending `Server: plank'
 Receiving:
@@ -283,13 +282,10 @@ UNIX> <font color=darkred><b></b></font>
 </pre>
 </td>
 <td valign=top>
-On my Macintosh:<hr>
+On hydra4:<hr>
 <pre>
 
-UNIX> <font color=darkred><b>telnet hydra3.eecs.utk.edu 5555</b></font>
-Trying 160.36.56.85...
-Connected to hydra3.eecs.utk.edu.
-Escape character is '^]'.
+UNIX> <font color=darkred><b>nc hydra3 8888</b></font>
 Server: plank
 <font color=darkred><b>The moment I wake up, before I put on my makeup....</b></font>
 Connection closed by foreign host.
@@ -302,7 +298,7 @@ back and forth.  Easy enough.  Now, a few mundane details.  First, suppose I try
 server again quickly:
 
 <pre>
-UNIX> <font color=darkred><b>./serve1 5555</b></font>
+UNIX> <font color=darkred><b>./serve1 8888</b></font>
 bind(): Address already in use
 UNIX> <font color=darkred><b></b></font>
 </pre>
@@ -360,7 +356,7 @@ its own.  Here it is working:
 <p><center><table border=3 cellpadding=3><td valign=top>
 On hydra3:<hr>
 <pre>
-UNIX> <font color=darkred><b>./serve2 5555</b></font>
+UNIX> <font color=darkred><b>./serve2 8888</b></font>
 Connection established.  Sending `Server: plank'
 Receiving:
 
@@ -369,9 +365,9 @@ UNIX>
 </pre>
 </td>
 <td valign=top>
-On my Macintosh:<hr>
+On hydra4:<hr>
 <pre>
-UNIX> <font color=darkred><b>./client1 hydra3.eecs.utk.edu 5555</b></font>
+UNIX> <font color=darkred><b>./client1 hydra3 8888</b></font>
 Connection established.  Receiving:
 
 Received: Server: plank
@@ -393,7 +389,7 @@ this from his machine:
 My output on hydra3:
 <hr>
 <pre>
-UNIX> <font color=darkred><b>./serve1 5001</b></font>
+UNIX> <font color=darkred><b>./serve1 8001</b></font>
 
 Connection established.  Sending `Server: plank'
 Receiving:
@@ -405,7 +401,7 @@ UNIX>
 His output on his machine:
 <hr>
 <pre>
-UNIX> <font color=darkred><b>./client1 hydra3.eecs.utk.edu 5001</b></font>
+UNIX> <font color=darkred><b>./client1 hydra3.eecs.utk.edu 8001</b></font>
 Connection established.  Receiving:
 
 Received: Server: plank
@@ -430,14 +426,14 @@ it along <b>stdout</b>.
 <p>Try running <b>alternate</b> from two windows on the same machine, or from 
 two different machines, or from two different users on different machines.
 
-Here is an example of the server on hydra3 and the client on my Macintosh.  
+Here is an example of the server on hydra3 and the client on hydra4.  
 Pay attention to the part where the client writes before the server is ready
 (it's the line "While combing my hair now"), and what the output is:
 
 <p><center><table border=3 cellpadding=3><td valign=top>
 On hydra3:<hr>
 <pre>
-UNIX> <font color=darkred><b>alternate hydra3.eecs.utk.edu 5555 s</b></font>
+UNIX> <font color=darkred><b>alternate hydra3.eecs.utk.edu 8888 s</b></font>
 
 Connection established.  Client should start talking
 
@@ -453,10 +449,10 @@ UNIX>
 </pre>
 </td>
 <td valign=top>
-On my Macintosh:<hr>
+On hydra4:<hr>
 <pre>
 
-UNIX> <font color=darkred><b>alternate hydra3.eecs.utk.edu 5555 c</b></font>
+UNIX> <font color=darkred><b>alternate hydra3.eecs.utk.edu 8888 c</b></font>
 Connection established.  Client should start talking
 <font color=darkred><b>The moment I wake up</b></font>
 
@@ -525,7 +521,7 @@ When you run <b>minitalk1</b>, after you finish, type "ps" and kill extraneous
 <p><center><table border=3 cellpadding=3><td valign=top>
 On hydra3:<hr>
 <pre>
-UNIX> <font color=darkred><b>minitalk1 hydra3.eecs.utk.edu 5555 s</b></font>
+UNIX> <font color=darkred><b>minitalk1 hydra3.eecs.utk.edu 8888 s</b></font>
 
 Connection made -- input goes to remote site
                    output comes from remote site
@@ -548,10 +544,10 @@ UNIX> <font color=darkred><b>kill 6098</b></font>
 </pre>
 </td>
 <td valign=top>
-On my Macintosh:<hr>
+On my hydra4<hr>
 <pre>
 
-UNIX> <font color=darkred><b>minitalk1 hydra3.eecs.utk.edu 5555 c</b></font>
+UNIX> <font color=darkred><b>minitalk1 hydra3.eecs.utk.edu 8888 c</b></font>
 Connection made -- input goes to remote site
                    output comes from remote site
 <font color=darkred><b>The moment I wake up</b></font>
@@ -662,9 +658,9 @@ int main(int argc, char **argv)
 
   hn = argv[1];
   port = atoi(argv[2]);
-  if (port &lt; 5000) {
+  if (port &lt; 8000) {
     fprintf(stderr, "usage: minitalk hostname port s|c\n");
-    fprintf(stderr, "       port must be &gt; 5000\n");
+    fprintf(stderr, "       port must be &gt; 8000\n");
     exit(1);
   }
 
