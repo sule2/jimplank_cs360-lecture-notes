@@ -43,7 +43,7 @@ void *share_counter(void *arg)
 
     /* Lock the mutex, update the counter and print. */
 
-    pthread_mutex_lock(s->lock);      
+    if (info->id != 0) pthread_mutex_lock(s->lock);      
     s->counter++;
     counter = s->counter;
     printf("Thread: %3d - Begin - Counter %3d.\n", info->id, s->counter);
@@ -62,7 +62,7 @@ void *share_counter(void *arg)
              info->id, counter, s->counter);
       exit(1);
     }
-    pthread_mutex_unlock(s->lock);
+    if (info->id != 0) pthread_mutex_unlock(s->lock);
 
   }
 
