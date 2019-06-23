@@ -30,17 +30,21 @@ void *initialize_v(int phil_count)
   return p; 
 }
 
-/* These are straightforward, simply picking up and putting down
-   chopsticks, first right, then left. */
+#define left_stick ((philosopher+1)%p->num)
+#define right_stick (philosopher)
 
 void i_am_hungry(void *v, int philosopher) 
 {
   MyPhil *p;
 
   p = (MyPhil *) v;
-
-  pick_up_chopstick(philosopher, philosopher);
-  pick_up_chopstick(philosopher, (philosopher+1)%p->num);
+  if ((philosopher % 2) != 0) {
+    pick_up_chopstick(philosopher, right_stick);
+    pick_up_chopstick(philosopher, left_stick);
+  } else {
+    pick_up_chopstick(philosopher, left_stick);
+    pick_up_chopstick(philosopher, right_stick);
+  }
 }
 
 void i_am_done_eating(void *v, int philosopher) 
@@ -48,7 +52,7 @@ void i_am_done_eating(void *v, int philosopher)
   MyPhil *p;
 
   p = (MyPhil *) v;
-
-  put_down_chopstick(philosopher, philosopher);
-  put_down_chopstick(philosopher, (philosopher+1)%p->num);
+  put_down_chopstick(philosopher, left_stick);
+  put_down_chopstick(philosopher, right_stick);
 }
+

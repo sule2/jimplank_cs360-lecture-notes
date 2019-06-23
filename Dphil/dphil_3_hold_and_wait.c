@@ -48,47 +48,39 @@ void i_am_hungry(void *v, int philosopher)
   stick1 = philosopher;
   stick2 = (philosopher+1)%p->num;
 
-  /* While either chopstick is in use, block. */
-
   pthread_mutex_lock(p->lock);
-  while (p->stick_states[stick1] == 'U' ||
-         p->stick_states[stick2] == 'U') {
+
+  while(p->stick_states[stick1] == 'U' || 
+        p->stick_states[stick2] == 'U') {
     pthread_cond_wait(p->blocked_philosophers[philosopher], p->lock);
   }
 
-  /* Now, both chopsticks are available.  
-     We hold the lock to make sure that no other philosopher gets our chopsticks
-     while we are picking up chopsticks. */
-
-  pick_up_chopstick(philosopher, philosopher);
-  pick_up_chopstick(philosopher, (philosopher+1)%p->num);
-
+  pick_up_chopstick(philosopher, stick1);
+  pick_up_chopstick(philosopher, stick2);
   p->stick_states[stick1] = 'U';
   p->stick_states[stick2] = 'U';
+
   pthread_mutex_unlock(p->lock);
+  
 }
 
 void i_am_done_eating(void *v, int philosopher) 
 {
   MyPhil *p;
   int stick1, stick2;
-  int leftp, rightp;
 
   p = (MyPhil *) v;
   stick1 = philosopher;
   stick2 = (philosopher+1)%p->num;
-  leftp = (philosopher+p->num-1)%p->num;
-  rightp = stick2;
 
   pthread_mutex_lock(p->lock);
-  put_down_chopstick(philosopher, philosopher);
-  put_down_chopstick(philosopher, (philosopher+1)%p->num);
+
   p->stick_states[stick1] = 'D';
   p->stick_states[stick2] = 'D';
+  put_down_chopstick(philosopher, stick1);
+  put_down_chopstick(philosopher, stick2);
+  pthread_cond_signal(p->blocked_philosophers[(philosopher+1)%p->num]);
+  pthread_cond_signal(p->blocked_philosophers[(philosopher+p->num-1)%p->num]);
 
-  /* After we put down out chopsticks, we need to signal adjacent philosophers. */
-
-  pthread_cond_signal(p->blocked_philosophers[leftp]);
-  pthread_cond_signal(p->blocked_philosophers[rightp]);
   pthread_mutex_unlock(p->lock);
 }
